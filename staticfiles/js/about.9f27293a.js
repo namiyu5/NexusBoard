@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunknexusboard_vue"]=self["webpackChunknexusboard_vue"]||[]).push([[594],{1417:function(u,n,e){e.r(n),e.d(n,{default:function(){return i}});var s=function(){var u=this;u._self._c;return u._m(0)},t=[function(){var u=this,n=u._self._c;return n("div",{staticClass:"about"},[n("h1",[u._v("This is an about page")])])}],a=e(1656),r={},l=(0,a.A)(r,s,t,!1,null,null,null),i=l.exports}}]);
+//# sourceMappingURL=about.9f27293a.js.map
