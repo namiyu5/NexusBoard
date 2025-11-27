@@ -1,0 +1,7 @@
+{
+  "name": "nexusboard-root",
+  "private": true,
+  "scripts": {
+    "heroku-postbuild": "cd nexusboard_vue && npm install --production=false && npm run build && mkdir -p ../nexus_board/staticfiles/nexusboard_vue && cp -a dist/* ../nexus_board/staticfiles/nexusboard_vue/"
+  }
+}

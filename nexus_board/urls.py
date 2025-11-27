@@ -22,11 +22,15 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from .views import signup
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('djoser.urls')),
     path('api/v1/auth/', include('djoser.urls.jwt')),
+    # Compatibility endpoints used by the Vue frontend
+    path('api/auth/login/', TokenObtainPairView.as_view(), name='api_login'),
+    path('api/auth/signup/', signup, name='api_signup'),
     path('', TemplateView.as_view(template_name='nexus_board/index.html')),
     # path('', vue_app, name='vue_app'),
     path(

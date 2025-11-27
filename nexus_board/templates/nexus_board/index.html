@@ -1,24 +1,19 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="icon" href="{% static 'staticfiles/favicon.ico' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NexusBoard</title>
-    <script defer src= "{% static '/js/chunk-vendors.36c8a9e7.js' %}"></script>
-    <script defer src="{% static '/js/app.a9ae5c82.js' %}"></script>
-    <link href="{% static '/css/app.33ee9916.css' %}" rel="stylesheet" />
+    <!-- Built SPA assets (updated hashes) -->
+    <link rel="stylesheet" href="{% static 'nexusboard_vue/assets/index-e1a442c3.css' %}">
+    <script type="module" crossorigin src="{% static 'nexusboard_vue/assets/index-111635b3.js' %}"></script>
+    <style>
+      html, body, #app { height: 100%; }
+    </style>
   </head>
   <body>
-    <noscript
-      ><strong
-        >We're sorry but NexusBoard doesn't work properly without JavaScript
-        enabled. Please enable it to continue.</strong
-      ></noscript
-    >
     <div id="app"></div>
-    <script src="{% static 'nexusboard_vue/js/app.js' %}"></script>
+
   </body>
 </html>

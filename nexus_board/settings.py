@@ -30,7 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# DEBUG is controlled by environment for safe deployment.
+# Set the environment variable DEBUG=True for local development if needed.
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     'nexusboard-f0283087ad26.herokuapp.com',
@@ -56,6 +58,8 @@ INSTALLED_APPS = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 MIDDLEWARE = [
