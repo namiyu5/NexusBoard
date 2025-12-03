@@ -28,7 +28,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('djoser.urls')),
     path('api/v1/auth/', include('djoser.urls.jwt')),
-    # Compatibility endpoints used by the Vue frontend
     path('api/auth/login/', TokenObtainPairView.as_view(), name='api_login'),
     path('api/auth/signup/', signup, name='api_signup'),
     path('', TemplateView.as_view(template_name='nexus_board/index.html')),
@@ -43,4 +42,6 @@ urlpatterns = [
         TokenRefreshView.as_view(),
         name='token_refresh',
     ),
+    # Courses and lessons API
+    path('api/', include('courses.urls')),
 ]

@@ -2,5 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add a small reset so body is full-height for your layout */
+
 html, body, #app { height: 100%; }

@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import CourseList from '../components/CourseList.vue'
-import CourseDetail from '../components/CourseDetail.vue'
-import HomeFallback from '../components/HomeFallback.vue'
+import CourseList from './components/CourseList.vue'
+import CourseDetail from './components/CourseDetail.vue'
+import HomeFallback from './components/HomeFallback.vue'
 
 const routes = [
   { path: '/', name: 'home', component: HomeFallback },

@@ -12,11 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-import token
 import dj_database_url
 
 if os.path.isfile("env.py"):
-    import env
+    import env  # noqa: F401
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -54,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'djoser',
+    'courses',
 ]
 
 CORS_ALLOWED_ORIGINS = [

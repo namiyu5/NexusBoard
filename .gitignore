@@ -7,4 +7,10 @@ node_modules/
 .github/
 cloudinary_python.txt
 blog/fixtures/
-t 
+build_vue.bat
+
+# Local virtual environment
+.venv/
+
+# Frontend build output
+nexusboard_vue/dist/
