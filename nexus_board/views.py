@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 
 
 User = get_user_model()
@@ -40,3 +42,15 @@ def signup(request):
         return Response(
             {'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'is_staff': user.is_staff,
+        'is_superuser': user.is_superuser,
+    })

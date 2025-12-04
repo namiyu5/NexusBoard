@@ -9,8 +9,15 @@
           <button @click="view='courses'" class="nav-btn">Courses</button>
           <button @click="view='notes'" class="nav-btn">Notes</button>
           <button @click="view='dashboard'" class="nav-btn">Dashboard</button>
-          <button @click="view='login'" class="nav-btn">Login</button>
-          <button @click="view='register'" class="nav-btn">Register</button>
+          <button v-if="isAdmin" @click="view='admin'" class="nav-btn">Admin</button>
+          <template v-if="isLoggedIn">
+            <span class="text-sm text-white/70 mr-3">Logged in as {{ usernameDisplay }}</span>
+            <button @click="logout" class="nav-btn">Logout</button>
+          </template>
+          <template v-else>
+            <button @click="goToLogin" class="nav-btn">Login</button>
+            <button @click="goToRegister" class="nav-btn">Register</button>
+          </template>
         </nav>
       </div>
     </header>
@@ -53,6 +60,7 @@
     </p>
 
     <p v-if="error" class="text-sm text-red-400 text-center">{{ error }}</p>
+    <p v-if="loginSuccess" class="text-sm text-green-400 text-center">{{ loginSuccess }}</p>
   </div>
 </section>
 <section v-if="view==='register'" class="w-full max-w-md">
@@ -89,6 +97,7 @@
     </p>
 
     <p v-if="regError" class="text-sm text-red-400 text-center">{{ regError }}</p>
+    <p v-if="regSuccess" class="text-sm text-green-400 text-center">{{ regSuccess }}</p>
   </div>
 </section>
 
@@ -195,17 +204,26 @@
 
           <div class="overflow-x-auto pb-2 -mx-6 px-6">
         <div class="flex gap-4 min-w-max">
-          <article v-for="course in courses" :key="course.id" class="min-w-[260px] bg-[rgba(255,255,255,0.03)] rounded-xl p-5 shadow-sm">
+          <article v-for="course in courses" :key="course.id" class="min-w-[280px] bg-gradient-to-tr from-[rgba(255,255,255,0.02)] to-[rgba(255,255,255,0.01)] rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
             <div class="flex items-start justify-between gap-3">
-          <div>
-            <h3 class="text-lg font-semibold text-white">{{ course.title }}</h3>
-            <p class="text-xs text-white/60 mt-1">{{ course.description }}</p>
-          </div>
-          <div class="text-xs text-white/50">{{ course.duration }}</div>
+              <div class="flex-1 pr-3">
+                <h3 class="text-lg font-semibold text-white truncate">{{ course.title }}</h3>
+                <p class="text-xs text-white/60 mt-2 line-clamp-3">{{ course.description }}</p>
+                <div class="mt-3 flex items-center gap-3 text-xs text-white/60">
+                  <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.lessons ? course.lessons.length : '—' }} lessons</div>
+                  <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.duration || 'Self-paced' }}</div>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-3">
+                <div v-if="enrolledCourses.includes(course.id)" class="text-xs text-green-300 font-semibold">Enrolled</div>
+                <div class="text-xs text-white/50">{{ course.level || '' }}</div>
+              </div>
             </div>
-            <div class="mt-4 flex gap-3">
-          <button @click="openCourse(course.id)" class="px-3 py-2 rounded-md bg-yellow-400 text-indigo-900 text-sm font-semibold">Preview</button>
-          <button @click="enroll(course.id)" class="px-3 py-2 rounded-md bg-teal-400 text-black text-sm font-semibold">Enroll</button>
+            <div class="mt-4 flex gap-3 items-center">
+              <button @click="openCourse(course.id)" class="px-3 py-2 rounded-md bg-yellow-400 text-indigo-900 text-sm font-semibold shadow">Preview</button>
+              <button @click="enroll(course.id)" class="px-3 py-2 rounded-md bg-gradient-to-r from-teal-400 to-emerald-400 text-black text-sm font-semibold shadow" :class="{'opacity-60 cursor-not-allowed': enrolledCourses.includes(course.id)}">
+                {{ enrolledCourses.includes(course.id) ? 'Go to course' : 'Enroll' }}
+              </button>
             </div>
           </article>
         </div>
@@ -321,6 +339,14 @@
       </section>
 
       <!-- Login/Register (reuse your existing forms) -->
+      <section v-if="view==='course'" class="w-full max-w-6xl mx-auto px-6 py-12">
+        <CourseDetail :courseId="currentCourseId" :onEnroll="enroll" />
+      </section>
+
+      <section v-if="view==='admin'" class="w-full max-w-6xl mx-auto px-6 py-12">
+        <AdminDashboard />
+      </section>
+
       <section v-if="view==='login' || view==='register'" class="w-full max-w-md">
         <!-- Insert your login/register forms here -->
       </section>
@@ -336,13 +362,26 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
+import { setAuthTokens, clearAuth, verifyAuth } from './api.js'
 import logo from './assets/favicon.ico'
+import CourseDetail from './components/CourseDetail.vue'
+import AdminDashboard from './components/AdminDashboard.vue'
 
 const view = ref('home')
-const username = ref('')
+// `username` is used both for login input and display; initialize from localStorage when present
+const username = ref(localStorage.getItem('username') || '')
 const courses = ref([])
 const notes = ref([])
 const enrolledCourses = ref([])
+const isLoggedIn = ref(!!localStorage.getItem('access_token'))
+const isAdmin = ref(false)
+const usernameDisplay = ref(localStorage.getItem('username') || '')
+const currentCourseId = ref(null)
+
+function refreshAuthState() {
+  isLoggedIn.value = !!localStorage.getItem('access_token')
+  usernameDisplay.value = localStorage.getItem('username') || ''
+}
 
 const featuredCourse = computed(() => (courses.value && courses.value.length) ? courses.value[0] : { id: null, title: '', description: '', duration: '' })
 
@@ -354,6 +393,10 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 let pollHandle = null
 const POLL_INTERVAL_MS = 8000
 
+// handlers for child requests to show inline auth views — module scope so removal works
+function onShowLogin() { if (!isLoggedIn.value) view.value = 'login' }
+function onShowRegister() { if (!isLoggedIn.value) view.value = 'register' }
+
 async function fetchData() {
   try {
     const [courseRes, notesRes] = await Promise.all([
@@ -361,33 +404,161 @@ async function fetchData() {
       // notes API may not exist yet on the backend; handle failure gracefully
       axios.get(`${API_BASE}/api/notes/`).catch(() => ({ data: [] })),
     ])
-    // only replace if data changed (simple equality by length)
-    if (Array.isArray(courseRes.data)) courses.value = courseRes.data
-    if (Array.isArray(notesRes.data)) notes.value = notesRes.data
+    // DRF may return paginated responses ({ results: [...] }) or a plain array
+    const courseData = Array.isArray(courseRes.data) ? courseRes.data : (courseRes.data && courseRes.data.results) ? courseRes.data.results : []
+    const notesData = Array.isArray(notesRes.data) ? notesRes.data : (notesRes.data && notesRes.data.results) ? notesRes.data.results : []
+    courses.value = courseData
+    notes.value = notesData
   } catch (err) {
     console.error('Error fetching data', err)
+  }
+}
+
+async function loadEnrollments() {
+  // populate enrolledCourses from server-side enrollments
+  enrolledCourses.value = []
+  if (!isLoggedIn.value) return
+  try {
+    const res = await axios.get('/api/enrollments/')
+    const data = Array.isArray(res.data) ? res.data : (res.data && res.data.results) ? res.data.results : []
+    enrolledCourses.value = data.map(en => {
+      const c = en.course
+      return c && typeof c === 'object' ? c.id : c
+    }).filter(Boolean)
+  } catch (err) {
+    console.error('Failed to load enrollments', err)
   }
 }
 
 onMounted(() => {
   // initial fetch
   fetchData()
+  // verify auth tokens and refresh if needed so UI shows correct login state
+  verifyAuth().then(ok => {
+    if (ok) {
+      refreshAuthState()
+      // load server-side enrollments when authenticated
+      loadEnrollments().catch(() => {})
+      loadUserInfo().catch(() => {})
+    } else {
+      refreshAuthState()
+    }
+  }).catch(() => refreshAuthState())
+  // listen for auth changes from other components
+  window.addEventListener('authChanged', refreshAuthState)
+  // listen for requests from child components to show inline auth views
+  window.addEventListener('showLogin', onShowLogin)
+  window.addEventListener('showRegister', onShowRegister)
+  // navigate to course/lesson when child signals startLearning
+  window.addEventListener('startLearning', (ev) => {
+    const d = ev?.detail || window.__startLearningPayload
+    if (!d) return
+    currentCourseId.value = d.courseId
+    // ensure enrolledCourses contains courseId
+    if (!enrolledCourses.value.includes(d.courseId)) enrolledCourses.value.push(d.courseId)
+    // persist last-start payload so we can restore across reloads
+    try { localStorage.setItem('lastStart', JSON.stringify(d)) } catch (e) { /* ignore */ }
+    view.value = 'course'
+  })
   // poll for changes so admin-created courses appear automatically
   pollHandle = setInterval(fetchData, POLL_INTERVAL_MS)
 })
 
+async function loadUserInfo() {
+  try {
+    const res = await axios.get('/api/me/')
+    if (res && res.data) {
+      const d = res.data
+      isAdmin.value = !!d.is_staff
+      // cache for quick checks
+      try { localStorage.setItem('is_staff', isAdmin.value ? '1' : '0') } catch (e) {}
+    }
+  } catch (err) {
+    isAdmin.value = false
+  }
+}
+
 onUnmounted(() => {
   if (pollHandle) clearInterval(pollHandle)
+  window.removeEventListener('authChanged', refreshAuthState)
+  window.removeEventListener('showLogin', onShowLogin)
+  window.removeEventListener('showRegister', onShowRegister)
 })
 
 function openCourse(id) {
-  view.value = 'dashboard'
+  // open course detail — require login to view full content
+  if (!isLoggedIn.value) {
+    view.value = 'login'
+    return
+  }
   if (!enrolledCourses.value.includes(id)) enrolledCourses.value.push(id)
+  currentCourseId.value = id
+  view.value = 'course'
 }
 
 const newNoteTitle = ref('')
 const newNoteContent = ref('')
 const noteError = ref('')
+
+// login/register form state used by the inline App.vue forms
+const password = ref('')
+const error = ref('')
+const loginSuccess = ref('')
+const regUsername = ref('')
+const regEmail = ref('')
+const regPassword = ref('')
+const regError = ref('')
+const regSuccess = ref('')
+
+async function submitLogin() {
+  error.value = ''
+  try {
+    const res = await axios.post('/api/token/', {
+      username: username.value,
+      password: password.value,
+    })
+    if (res && res.data && res.data.access) {
+      setAuthTokens(res.data.access, res.data.refresh)
+      // persist username and update UI state
+      localStorage.setItem('username', username.value)
+      refreshAuthState()
+      // show confirmation and redirect home
+      loginSuccess.value = 'Signed in successfully.'
+      setTimeout(() => {
+        loginSuccess.value = ''
+        view.value = 'home'
+      }, 700)
+    } else {
+      error.value = 'Unexpected server response'
+    }
+  } catch (err) {
+    error.value = err?.response?.data?.detail || 'Invalid credentials'
+  }
+}
+
+async function submitRegister() {
+  regError.value = ''
+  try {
+    const res = await axios.post(`${API_BASE}/api/auth/signup/`, {
+      username: regUsername.value,
+      email: regEmail.value,
+      password: regPassword.value,
+    })
+    if (res && res.status === 201) {
+      // registration successful — show success and send user to login
+      regSuccess.value = 'Account created. Please sign in.'
+      username.value = regUsername.value
+      setTimeout(() => {
+        regSuccess.value = ''
+        view.value = 'login'
+      }, 900)
+    } else {
+      regError.value = 'Registration failed'
+    }
+  } catch (err) {
+    regError.value = err?.response?.data?.detail || 'Error during registration'
+  }
+}
 
 async function createNote() {
   noteError.value = ''
@@ -396,13 +567,9 @@ async function createNote() {
     return
   }
   try {
-    const res = await axios.post(`${API_BASE}/api/notes/`, {
+    const res = await axios.post('/api/notes/', {
       title: newNoteTitle.value,
       content: newNoteContent.value,
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`
-      }
     })
     if (res.status === 201) {
       notes.value.push(res.data) // add new note to list
@@ -416,8 +583,53 @@ async function createNote() {
   }
 }
 
-function enroll(courseId) {
-  // Later: POST to backend to enroll user
+async function enroll(courseId) {
+  if (!isLoggedIn.value) {
+    view.value = 'login'
+    return
+  }
+
+  try {
+    // POST to enrollments API. api.js config applies Authorization header.
+    const res = await axios.post('/api/enrollments/', { course: courseId })
+    if (res && (res.status === 201 || res.status === 200)) {
+      // server returned existing or new enrollment
+      if (!enrolledCourses.value.includes(courseId)) enrolledCourses.value.push(courseId)
+      currentCourseId.value = courseId
+      view.value = 'course'
+    } else {
+      // fallback behavior
+      if (!enrolledCourses.value.includes(courseId)) enrolledCourses.value.push(courseId)
+      currentCourseId.value = courseId
+      view.value = 'course'
+    }
+  } catch (err) {
+    // If unauthorized, send user to login
+    if (err?.response?.status === 401) {
+      view.value = 'login'
+      return
+    }
+    console.error('Enrollment failed', err)
+    // still open course locally as fallback
+    if (!enrolledCourses.value.includes(courseId)) enrolledCourses.value.push(courseId)
+    currentCourseId.value = courseId
+    view.value = 'course'
+  }
+}
+
+function logout() {
+  clearAuth()
+  refreshAuthState()
+  view.value = 'home'
+}
+
+function goToLogin() { 
+  if (isLoggedIn.value) { view.value = 'home'; return }
+  view.value = 'login' 
+}
+function goToRegister() { 
+  if (isLoggedIn.value) { view.value = 'home'; return }
+  view.value = 'register' 
 }
 
 </script>

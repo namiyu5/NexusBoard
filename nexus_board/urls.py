@@ -17,17 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
-from .views import vue_app
+from .views import vue_app, signup, current_user
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from .views import signup
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('djoser.urls')),
     path('api/v1/auth/', include('djoser.urls.jwt')),
+     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('api/auth/login/', TokenObtainPairView.as_view(), name='api_login'),
     path('api/auth/signup/', signup, name='api_signup'),
     path('', TemplateView.as_view(template_name='nexus_board/index.html')),
@@ -44,4 +44,6 @@ urlpatterns = [
     ),
     # Courses and lessons API
     path('api/', include('courses.urls')),
+    # current authenticated user info for SPA
+    path('api/me/', current_user, name='api_me'),
 ]
