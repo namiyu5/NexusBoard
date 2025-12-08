@@ -1,150 +1,315 @@
 <template>
-  <section class="w-full max-w-4xl mx-auto px-6 py-12">
-    <div v-if="loading">Loading...</div>
-    <div v-if="error" class="text-red-500">{{ error }}</div>
+  <section class="w-full mx-auto">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+        <p class="text-white/60">Loading course...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error" class="max-w-2xl mx-auto px-6 py-12">
+      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+        <div class="text-4xl mb-3">⚠️</div>
+        <p class="text-red-400 font-semibold mb-2">Error Loading Course</p>
+        <p class="text-red-300/80 text-sm">{{ error }}</p>
+      </div>
+    </div>
 
     <div v-if="course && !loading" class="relative">
-      
-      <div v-if="!isLoggedIn" class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-6 rounded-lg">
-          <div class="max-w-md text-center text-mb-muted">
-            <h3 class="text-xl font-semibold mb-3 text-white">Please sign in to view this course</h3>
-            <p class="text-sm text-mb-muted mb-4">Lessons and notes are available only for signed-in learners. Sign in or register to continue.</p>
-            <div class="flex gap-3 justify-center">
-              <button @click="goToLogin" class="btn bg-mb-primary text-[#071520]">Login</button>
-              <button @click="goToRegister" class="btn bg-mb-secondary text-[#071520]">Register</button>
+      <!-- Login Overlay -->
+      <div v-if="!isLoggedIn" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
+        <div class="max-w-md mx-4 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 rounded-2xl p-8 text-center">
+          <div class="text-5xl mb-4">🔒</div>
+          <h3 class="text-2xl font-bold mb-3 text-white">Sign In Required</h3>
+          <p class="text-white/70 mb-6">Access exclusive course content, track your progress, and take notes by signing in to your account.</p>
+          <div class="flex gap-3 justify-center">
+            <button @click="goToLogin" class="btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3">Login</button>
+            <button @click="goToRegister" class="btn bg-white/10 text-white px-6 py-3 hover:bg-white/20">Register</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course Overview (when no lesson selected) -->
+      <div v-if="!selectedLesson" class="max-w-6xl mx-auto px-6 py-12">
+        <!-- Back Button -->
+        <button @click="$emit('back')" class="mb-6 text-white/60 hover:text-white flex items-center gap-2 transition">
+          <span>←</span> Back to Courses
+        </button>
+
+        <!-- Course Header -->
+        <div class="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 rounded-2xl p-8 mb-8">
+          <div class="flex flex-col md:flex-row gap-8">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-4">
+                <span :class="['px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider', 
+                  course.difficulty === 'beginner' ? 'bg-green-500/30 text-green-300' :
+                  course.difficulty === 'intermediate' ? 'bg-yellow-500/30 text-yellow-300' :
+                  'bg-red-500/30 text-red-300']">
+                  {{ course.difficulty || 'Beginner' }}
+                </span>
+                <span v-if="enrolled" class="px-3 py-1 rounded-full text-xs font-bold bg-teal-500/30 text-teal-300">
+                  ✓ Enrolled
+                </span>
+              </div>
+              <h1 class="text-4xl font-bold text-white mb-4">{{ course.title }}</h1>
+              <div class="text-white/70 text-lg leading-relaxed mb-6" v-html="processEmbeds(course.excerpt || course.description)"></div>
+              
+              <!-- Course Stats -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white/5 rounded-lg p-4">
+                  <div class="text-2xl font-bold text-indigo-400">{{ lessons.length }}</div>
+                  <div class="text-xs text-white/60 mt-1">Lessons</div>
+                </div>
+                <div class="bg-white/5 rounded-lg p-4">
+                  <div class="text-2xl font-bold text-teal-400">{{ course.duration_hours || 'N/A' }}</div>
+                  <div class="text-xs text-white/60 mt-1">Hours</div>
+                </div>
+                <div class="bg-white/5 rounded-lg p-4">
+                  <div class="text-2xl font-bold text-purple-400">{{ progressPercent }}%</div>
+                  <div class="text-xs text-white/60 mt-1">Progress</div>
+                </div>
+                <div class="bg-white/5 rounded-lg p-4">
+                  <div class="text-2xl font-bold text-orange-400">{{ totalNotes }}</div>
+                  <div class="text-xs text-white/60 mt-1">Your Notes</div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex gap-3">
+                <button v-if="!enrolled && onEnroll" @click="handleEnroll" 
+                        class="btn bg-gradient-to-r from-teal-400 to-indigo-500 text-white px-8 py-3 text-lg font-semibold">
+                  Enroll Now
+                </button>
+                <button v-else @click="startLearning" 
+                        class="btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-8 py-3 text-lg font-semibold">
+                  {{ progressPercent > 0 ? 'Continue Learning' : 'Start Course' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-      <div :class="selectedLesson ? 'min-h-screen flex flex-col md:flex-row' : 'grid md:grid-cols-4 gap-6'">
-        <!-- Sidebar: lesson list -->
-        <aside :class="selectedLesson ? 'w-full md:w-80 bg-mb-surface p-4 rounded-none md:rounded-l-lg h-[calc(100vh-4rem)] overflow-auto' : 'md:col-span-1 bg-mb-surface p-4 rounded-lg'">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <div class="text-sm text-mb-muted">Course</div>
-              <div class="font-semibold text-white">{{ course.title }}</div>
+        <!-- Course Curriculum -->
+        <div class="bg-mb-surface border border-white/10 rounded-2xl p-8">
+          <h2 class="text-2xl font-bold text-white mb-6">📚 Course Curriculum</h2>
+          
+          <div v-if="!enrolled" class="text-center py-12 bg-white/5 rounded-lg border border-white/10">
+            <div class="text-4xl mb-3">🔒</div>
+            <p class="text-white/60 mb-4">Enroll in this course to access all lessons</p>
+            <button v-if="onEnroll" @click="handleEnroll" class="btn bg-indigo-500 text-white">
+              Enroll Now
+            </button>
+          </div>
+
+          <div v-else class="space-y-3">
+            <div v-for="(lesson, index) in lessons" :key="lesson.id" 
+                 @click="selectLesson(lesson)"
+                 class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-4 cursor-pointer transition-all duration-200">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center font-bold text-white">
+                  {{ lesson.order }}
+                </div>
+                <div class="flex-1">
+                  <h3 class="font-semibold text-white group-hover:text-indigo-300 transition mb-1">
+                    {{ lesson.title }}
+                  </h3>
+                  <div class="flex items-center gap-4 text-sm text-white/60">
+                    <span v-if="lesson.duration_minutes">⏱️ {{ lesson.duration_minutes }} min</span>
+                    <span v-if="lesson.video_url">🎥 Video</span>
+                    <span v-if="notesMap[lesson.id]?.length">📝 {{ notesMap[lesson.id].length }} notes</span>
+                  </div>
+                </div>
+                <div class="flex-shrink-0">
+                  <span class="text-indigo-400 group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <div v-if="onEnroll && !enrolled" @click="onEnroll(course.id)" class="px-3 py-1 rounded bg-mb-primary text-[#071520] text-xs">Enroll</div>
-              <div v-else class="text-xs text-mb-secondary">{{ enrolled ? 'Enrolled' : '' }}</div>
+            
+            <div v-if="!lessons.length" class="text-center py-12 text-white/60">
+              <div class="text-4xl mb-3">📭</div>
+              <p>No lessons available yet. Check back soon!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lesson View (when lesson selected) -->
+      <div v-else class="min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar: lesson list -->
+        <aside class="w-full md:w-80 bg-mb-surface border-r border-white/10 p-4 h-screen overflow-auto">
+          <button @click="selectedLesson = null" class="mb-4 text-white/60 hover:text-white flex items-center gap-2 transition w-full">
+            <span>←</span> Course Overview
+          </button>
+
+          <div class="mb-4 pb-4 border-b border-white/10">
+            <div class="text-xs text-white/60 mb-1">Course</div>
+            <div class="font-semibold text-white text-sm">{{ course.title }}</div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="mb-4 pb-4 border-b border-white/10">
+            <div class="flex items-center justify-between text-xs text-white/60 mb-2">
+              <span>Progress</span>
+              <span class="font-semibold text-white">{{ progressPercent }}%</span>
+            </div>
+            <div class="w-full bg-white/10 rounded-full h-2">
+              <div :style="{ width: progressPercent + '%' }" class="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"></div>
             </div>
           </div>
 
-                <div class="text-xs text-mb-muted mb-3">Lessons ({{ lessons.length }})</div>
-                <div v-if="!enrolled">
-                  <div class="text-sm text-mb-muted mb-2">You need to enroll to view lessons.</div>
-                  <div class="flex gap-2">
-                    <button v-if="onEnroll" @click="handleEnroll" class="btn bg-mb-primary text-[#071520]">Enroll</button>
-                    <button v-else @click="goToLogin" class="btn bg-mb-primary text-[#071520]">Login</button>
-                  </div>
+          <!-- Lessons List -->
+          <div class="text-xs text-white/60 mb-3 uppercase tracking-wider">Lessons ({{ lessons.length }})</div>
+          <ul class="space-y-2">
+            <li v-for="lesson in lessons" :key="lesson.id" 
+                @click="selectLesson(lesson)" 
+                :class="['p-3 rounded-lg cursor-pointer transition-all duration-200', 
+                  selectedLesson.id === lesson.id 
+                    ? 'bg-gradient-to-r from-indigo-500/30 to-purple-500/30 border border-indigo-500/50' 
+                    : 'bg-white/5 hover:bg-white/10']">
+              <div class="flex items-center gap-3">
+                <div :class="['flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold',
+                  selectedLesson.id === lesson.id ? 'bg-indigo-500 text-white' : 'bg-white/10 text-white/60']">
+                  {{ lesson.order }}
                 </div>
-                <div v-else>
-                  <div v-if="previewMode && !showLessons.value" class="mb-3">
-                    <div class="text-sm text-mb-muted mb-2">You're enrolled — preview</div>
-                    <div class="font-semibold text-white text-lg">{{ course.title }}</div>
-                    <div class="text-sm text-mb-muted mt-2 mb-3"><div v-html="processEmbeds(course.excerpt || course.description)"></div></div>
-                    <div class="text-xs text-mb-muted mb-2">Lessons</div>
-                    <ul class="text-sm space-y-1 mb-3 max-h-40 overflow-auto pr-2">
-                      <li v-for="lesson in lessons" :key="lesson.id" class="text-white/80">{{ lesson.order }}. {{ lesson.title }}</li>
-                      <li v-if="!lessons.length" class="text-xs text-white/60">No lessons yet.</li>
-                    </ul>
-                    <div class="flex gap-2">
-                      <button @click="startLearning" class="btn bg-mb-primary text-[#071520]">Start</button>
-                    </div>
-                  </div>
-                  <div v-else-if="!showLessons.value" class="text-sm text-mb-muted mb-2">You're enrolled. Click to start learning.</div>
-                    <div v-else-if="!showLessons.value" class="flex gap-2">
-                      <button @click="startLearning" class="btn bg-mb-secondary text-[#071520]">Start learning</button>
-                    </div>
-                  <ul v-if="showLessons.value" class="space-y-2 overflow-y-auto max-h-[60vh] pr-2">
-                    <li v-for="lesson in lessons" :key="lesson.id" @click="selectLesson(lesson)" class="p-3 rounded cursor-pointer" :class="{'bg-white/5': selectedLesson && selectedLesson.id === lesson.id}">
-                      <div class="flex items-center justify-between">
-                        <div>
-                          <div class="font-medium text-white text-sm">{{ lesson.order }}. {{ lesson.title }}</div>
-                          <div class="text-xs text-white/60">{{ lesson.duration_minutes ? lesson.duration_minutes + ' min' : '' }}</div>
-                        </div>
-                        <div class="text-xs text-white/50">{{ lesson.published ? '●' : '' }}</div>
-                      </div>
-                    </li>
-                    <li v-if="!lessons.length" class="text-xs text-white/60">No lessons yet.</li>
-                  </ul>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-white text-sm truncate">{{ lesson.title }}</div>
+                  <div class="text-xs text-white/50">{{ lesson.duration_minutes ? lesson.duration_minutes + ' min' : 'N/A' }}</div>
                 </div>
+              </div>
+            </li>
+          </ul>
         </aside>
 
         <!-- Main: lesson content -->
-        <div :class="selectedLesson ? 'flex-1 bg-mb-surface p-6 h-[calc(100vh-4rem)] overflow-auto rounded-none md:rounded-r-lg' : 'md:col-span-3 bg-mb-surface p-6 rounded-lg'">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h2 class="text-2xl font-bold">{{ selectedLesson ? (selectedLesson.title) : course.title }}</h2>
-              <div class="text-xs text-mb-muted mt-1">
-                <template v-if="selectedLesson">{{ 'Lesson ' + selectedLesson.order + ' of ' + lessons.length }}</template>
-                <template v-else><div v-html="processEmbeds(course.excerpt || course.description)"></div></template>
+        <div class="flex-1 bg-mb-bg overflow-auto">
+          <div class="max-w-4xl mx-auto px-6 py-8">
+            <!-- Lesson Header -->
+            <div class="mb-6">
+              <div class="flex items-center gap-2 text-sm text-white/60 mb-2">
+                <span>Lesson {{ selectedLesson.order }} of {{ lessons.length }}</span>
+                <span>•</span>
+                <span>{{ selectedLesson.duration_minutes ? selectedLesson.duration_minutes + ' minutes' : '' }}</span>
               </div>
-            </div>
-            <div class="w-40">
-              <div class="text-xs text-mb-muted">Progress</div>
-              <div class="w-full bg-white/5 rounded h-2 mt-1">
-                <div :style="{ width: progressPercent + '%' }" class="h-2 rounded bg-mb-primary"></div>
-              </div>
-              <div class="text-xs text-right text-white/60 mt-1">{{ progressPercent }}%</div>
-            </div>
-          </div>
-
-          <div v-if="selectedLesson" class="space-y-4">
-            <div v-if="selectedLesson.video_url" class="w-full bg-black rounded overflow-hidden">
-              <iframe :src="selectedLesson.video_url" class="w-full h-64" frameborder="0" allowfullscreen></iframe>
+              <h2 class="text-3xl font-bold text-white mb-2">{{ selectedLesson.title }}</h2>
             </div>
 
-            <div class="text-sm text-mb-muted bg-[rgba(255,255,255,0.02)] p-4 rounded"><div v-html="processEmbeds(selectedLesson.content)"></div></div>
+            <!-- Video Player -->
+            <div v-if="selectedLesson.video_url" class="mb-6 bg-black rounded-xl overflow-hidden shadow-2xl">
+              <div class="relative" style="padding-bottom: 56.25%;">
+                <iframe :src="selectedLesson.video_url" 
+                        class="absolute inset-0 w-full h-full" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen></iframe>
+              </div>
+            </div>
+
+            <!-- Lesson Content -->
+            <div class="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
+              <div class="prose prose-invert max-w-none text-white/80 leading-relaxed" v-html="processEmbeds(selectedLesson.content)"></div>
+            </div>
+
+            <!-- Lesson Content -->
+            <div class="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
+              <div class="prose prose-invert max-w-none text-white/80 leading-relaxed" v-html="processEmbeds(selectedLesson.content)"></div>
+            </div>
 
             <!-- Navigation controls -->
-            <div :class="selectedLesson ? 'mt-4 flex items-center justify-between gap-4 fixed left-0 right-0 bottom-6 mx-auto max-w-4xl px-4 z-50' : 'mt-4 flex items-center justify-between gap-4'">
-              <button @click="goToPrev" :disabled="!hasPrev" class="btn w-full md:w-40" :class="!hasPrev ? 'opacity-50 cursor-not-allowed' : ''">Previous</button>
-              <div class="flex-1 text-center text-xs text-mb-muted">{{ selectedLesson ? ('Lesson ' + selectedLesson.order + ' of ' + lessons.length) : '' }}</div>
-              <button @click="goToNext" :disabled="!hasNext" class="btn w-full md:w-40 bg-mb-primary" :class="!hasNext ? 'opacity-50 cursor-not-allowed' : ''">{{ hasNext ? 'Next' : 'Finish course' }}</button>
+            <div class="flex items-center justify-between gap-4 mb-8 bg-white/5 border border-white/10 rounded-xl p-4">
+              <button @click="goToPrev" :disabled="!hasPrev" 
+                      :class="['btn flex-1 md:flex-none md:px-8', !hasPrev ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10']">
+                <span class="mr-2">←</span> Previous
+              </button>
+              <div class="hidden md:block text-center text-sm text-white/60">
+                Lesson {{ selectedLesson.order }} of {{ lessons.length }}
+              </div>
+              <button @click="goToNext" :disabled="!hasNext" 
+                      :class="['btn flex-1 md:flex-none md:px-8', 
+                        !hasNext ? 'opacity-30 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:shadow-lg']">
+                {{ hasNext ? 'Next' : 'Complete' }} <span class="ml-2">→</span>
+              </button>
             </div>
 
-            <!-- Notes list -->
-            <div>
-              <div class="text-sm text-mb-muted mb-2">Notes</div>
-              <ul class="space-y-2">
-                <li v-for="note in notesMap[selectedLesson.id] || []" :key="note.id" class="bg-[rgba(255,255,255,0.03)] p-3 rounded">
+            <!-- Notes Section -->
+            <div class="bg-mb-surface border border-white/10 rounded-xl p-6">
+              <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span>📝</span> Lesson Notes
+              </h3>
+
+              <!-- Existing Notes -->
+              <div v-if="(notesMap[selectedLesson.id] || []).length > 0" class="mb-6 space-y-3">
+                <div v-for="note in notesMap[selectedLesson.id]" :key="note.id" 
+                     class="bg-white/5 border border-white/10 rounded-lg p-4 hover:border-indigo-500/30 transition">
                   <div v-if="editingNoteId === note.id">
-                    <input v-model="editNoteTitle[note.id]" type="text" class="input mb-2" />
+                    <!-- Edit Mode -->
+                    <input v-model="editNoteTitle[note.id]" 
+                           type="text" 
+                           placeholder="Note title"
+                           class="input mb-3" />
                     <WysiwygEditor v-model="editNoteContent[note.id]" />
-                    <div class="flex gap-2">
-                      <button @click="saveEdit(note)" class="btn bg-indigo-500 text-white">Save</button>
-                      <button @click="cancelEdit(note)" class="btn">Cancel</button>
+                    <div class="flex gap-2 mt-3">
+                      <button @click="saveEdit(note)" class="btn bg-green-500 text-white flex-1">
+                        ✓ Save
+                      </button>
+                      <button @click="cancelEdit(note)" class="btn bg-white/10 text-white flex-1">
+                        ✕ Cancel
+                      </button>
                     </div>
                     <div v-if="noteErrors[note.id]" class="text-xs text-red-400 mt-2">{{ noteErrors[note.id] }}</div>
                   </div>
                   <div v-else>
-                    <div class="text-sm font-semibold text-mb-muted">{{ note.title || 'Note' }}</div>
-                    <div class="text-xs text-mb-muted"><div v-html="processEmbeds(note.content)"></div></div>
-                    <div class="text-xs text-white/50 mt-1">{{ new Date(note.created_at).toLocaleString() }}</div>
-                    <div class="mt-2 flex items-center gap-2">
-                      <button v-if="canEditNote(note)" @click="editNote(note)" class="text-xs text-mb-primary hover:underline">Edit</button>
-                      <button v-if="canEditNote(note)" @click="deleteNote(note)" class="text-xs text-red-400 hover:underline">Delete</button>
+                    <!-- View Mode -->
+                    <div class="flex items-start justify-between mb-2">
+                      <h4 class="font-semibold text-white">{{ note.title || 'Untitled Note' }}</h4>
+                      <div class="flex items-center gap-2">
+                        <button v-if="canEditNote(note)" @click="editNote(note)" 
+                                class="text-xs text-indigo-400 hover:text-indigo-300 transition">
+                          ✏️ Edit
+                        </button>
+                        <button v-if="canEditNote(note)" @click="deleteNote(note)" 
+                                class="text-xs text-red-400 hover:text-red-300 transition">
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                    <div class="text-sm text-white/70 mb-2 prose prose-invert prose-sm max-w-none" v-html="processEmbeds(note.content)"></div>
+                    <div class="flex items-center gap-3 text-xs text-white/50">
+                      <span>{{ new Date(note.created_at).toLocaleDateString() }}</span>
+                      <span v-if="note.is_public" class="px-2 py-0.5 rounded bg-teal-500/30 text-teal-300">Public</span>
                     </div>
                   </div>
-                </li>
-                <li v-if="!(notesMap[selectedLesson.id] && notesMap[selectedLesson.id].length)" class="text-xs text-white/60">No notes yet — be the first to add one.</li>
-              </ul>
-            </div>
+                </div>
+              </div>
 
-            <!-- Add note form -->
-              <div class="mt-3">
-              <div class="text-sm text-white/60 mb-2">Add a note</div>
-              <input v-model="newNoteTitle[selectedLesson.id]" type="text" placeholder="Title (optional)" class="input mb-2" />
-              <WysiwygEditor v-model="newNoteContent[selectedLesson.id]" />
-              <div class="flex items-center gap-2">
-                <label class="text-sm mr-2 flex items-center gap-2"><input type="checkbox" v-model="newNoteIsPublic[selectedLesson.id]" /> <span>Public</span></label>
-                <button @click="submitNote(selectedLesson)" class="btn bg-indigo-500 text-white">Save note</button>
-                <div v-if="noteErrors[selectedLesson.id]" class="text-xs text-red-400">{{ noteErrors[selectedLesson.id] }}</div>
+              <div v-else class="mb-6 text-center py-8 bg-white/5 rounded-lg border border-dashed border-white/20">
+                <div class="text-3xl mb-2">📝</div>
+                <p class="text-white/60 text-sm">No notes yet. Be the first to add one!</p>
+              </div>
+
+              <!-- Add Note Form -->
+              <div class="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/30 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-white mb-3">Add Your Note</h4>
+                <input v-model="newNoteTitle[selectedLesson.id]" 
+                       type="text" 
+                       placeholder="Note title (optional)" 
+                       class="input mb-3" />
+                <WysiwygEditor v-model="newNoteContent[selectedLesson.id]" />
+                <div class="flex items-center gap-3 mt-3">
+                  <label class="flex items-center gap-2 text-sm text-white/70 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" v-model="newNoteIsPublic[selectedLesson.id]" class="rounded" />
+                    <span>Make this note public</span>
+                  </label>
+                  <button @click="submitNote(selectedLesson)" 
+                          class="btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white ml-auto px-6">
+                    Save Note
+                  </button>
+                </div>
+                <div v-if="noteErrors[selectedLesson.id]" class="text-xs text-red-400 mt-2">{{ noteErrors[selectedLesson.id] }}</div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -226,6 +391,10 @@ const progressPercent = computed(() => {
   const idx = lessons.value.findIndex(l => l.id === selectedLesson.value.id)
   if (idx === -1) return 0
   return Math.round(((idx + 1) / lessons.value.length) * 100)
+})
+
+const totalNotes = computed(() => {
+  return Object.values(notesMap.value).reduce((total, notes) => total + notes.length, 0)
 })
 
 function goToPrev() {
