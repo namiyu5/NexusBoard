@@ -266,19 +266,97 @@
       <!-- Courses -->
     <!-- Courses Page -->
 <section v-if="view==='courses'" class="w-full max-w-6xl mx-auto px-6 py-12">
-  <h2 class="text-3xl font-bold mb-8 text-center">Available Courses</h2>
+  <!-- Header -->
+  <div class="mb-10">
+    <h2 class="text-4xl font-bold mb-2">📚 Courses</h2>
+    <p class="text-white/60">Expand your skills with our curated selection of courses</p>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="card p-4 bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+      <div class="text-3xl font-bold text-indigo-400">{{ courses.length }}</div>
+      <div class="text-xs text-white/60 mt-1">Total Courses</div>
+    </div>
+    <div class="card p-4 bg-gradient-to-br from-teal-500/20 to-green-500/20">
+      <div class="text-3xl font-bold text-teal-400">{{ enrolledCourses.length }}</div>
+      <div class="text-xs text-white/60 mt-1">Your Courses</div>
+    </div>
+    <div class="card p-4 bg-gradient-to-br from-orange-500/20 to-red-500/20">
+      <div class="text-3xl font-bold text-orange-400">{{ Math.max(0, courses.length - enrolledCourses.length) }}</div>
+      <div class="text-xs text-white/60 mt-1">Available to Explore</div>
+    </div>
+  </div>
+
+  <!-- Search/Filter Bar -->
+  <div class="mb-8 flex gap-3">
+    <input v-model="courseSearchQuery" 
+           type="text" 
+           placeholder="Search courses by title or topic..."
+           class="flex-1 px-4 py-2 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-500"
+           aria-label="Search courses" />
+    <select v-model="courseDifficultyFilter"
+            class="px-4 py-2 rounded-md bg-white/10 border border-white/20 text-white focus:outline-none focus:border-indigo-500"
+            aria-label="Filter by difficulty">
+      <option value="">All Levels</option>
+      <option value="beginner">Beginner</option>
+      <option value="intermediate">Intermediate</option>
+      <option value="advanced">Advanced</option>
+    </select>
+  </div>
 
   <!-- Courses Grid -->
-  <div class="grid md:grid-cols-3 gap-8">
-    <div v-for="course in courses" :key="course.id"
-         class="bg-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-lg hover:shadow-xl transition">
-      <h3 class="text-xl font-semibold mb-2">{{ course.title }}</h3>
-      <p class="text-sm text-white/70 mb-4">{{ course.description }}</p>
-      <div class="flex justify-between items-center">
-        <span class="text-xs text-white/50">Duration: {{ course.duration }}</span>
+  <div v-if="filteredCourses.length === 0" class="text-center py-16">
+    <div class="text-4xl mb-3">🔍</div>
+    <p class="text-white/60">No courses match your search criteria. Try adjusting your filters.</p>
+  </div>
+
+  <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-for="course in filteredCourses" :key="course.id"
+         class="card group hover:shadow-xl hover:shadow-indigo-500/20 transition">
+      <!-- Course Header -->
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-white group-hover:text-indigo-300 transition">{{ course.title }}</h3>
+          <div class="flex items-center gap-2 mt-2 flex-wrap">
+            <span :class="['px-2 py-1 rounded-full text-xs font-medium', 
+              course.difficulty === 'beginner' ? 'bg-green-500/30 text-green-300' :
+              course.difficulty === 'intermediate' ? 'bg-yellow-500/30 text-yellow-300' :
+              'bg-red-500/30 text-red-300']">
+              {{ course.difficulty ? course.difficulty.charAt(0).toUpperCase() + course.difficulty.slice(1) : 'Beginner' }}
+            </span>
+            <span v-if="course.duration_hours" class="px-2 py-1 rounded-full text-xs bg-indigo-500/30 text-indigo-300">⏱️ {{ course.duration_hours }}h</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <p class="text-sm text-white/70 mb-4 line-clamp-2">{{ course.description }}</p>
+
+      <!-- Course Metadata -->
+      <div class="mb-4 pb-4 border-b border-white/10 text-xs text-white/50">
+        <div class="flex justify-between mb-2">
+          <span>Lessons</span>
+          <span class="font-semibold text-white">{{ course.lessons ? course.lessons.length : 0 }}</span>
+        </div>
+        <div class="flex justify-between" v-if="enrolledCourses.includes(course.id)">
+          <span>Status</span>
+          <span class="text-green-300 font-semibold">✓ Enrolled</span>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2">
+        <button @click="openCourse(course.id)" 
+                class="flex-1 px-3 py-2 rounded-md bg-indigo-500/30 text-indigo-300 text-sm hover:bg-indigo-500/50 transition font-medium"
+                :aria-label="`View ${course.title}`">
+          View Details
+        </button>
         <button @click="enroll(course.id)"
-                class="px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300">
-          Enroll
+                :class="['flex-1 px-3 py-2 rounded-md text-sm font-medium transition', enrolledCourses.includes(course.id) ? 'bg-green-500/30 text-green-300 cursor-not-allowed' : 'bg-teal-500/30 text-teal-300 hover:bg-teal-500/50']"
+                :disabled="enrolledCourses.includes(course.id)"
+                :aria-label="enrolledCourses.includes(course.id) ? `Continue ${course.title}` : `Enroll in ${course.title}`">
+          {{ enrolledCourses.includes(course.id) ? '▶ Continue' : '+ Enroll' }}
         </button>
       </div>
     </div>
@@ -286,82 +364,139 @@
 </section>
 
 
-      <!-- Notes -->
       <!-- Notes Section -->
-<section v-if="view==='notes'" class="w-full max-w-4xl">
-  <h2 class="text-3xl font-bold mb-8">My Notes</h2>
+<section v-if="view==='notes'" class="w-full max-w-6xl">
+  <div class="mb-8">
+    <h2 class="text-4xl font-bold mb-2">Study Notes</h2>
+    <p class="text-white/60">Organize and manage your course notes in one place</p>
+  </div>
 
-  <!-- Create Note Form -->
-  <div class="card mb-8">
-    <h3 class="text-lg font-semibold mb-4">Create a new note</h3>
-    <div class="flex flex-col gap-3">
-      <input v-model="newNoteTitle" type="text"
-             placeholder="Note title"
-             class="input"
-             aria-label="Note title" />
-      <textarea v-model="newNoteContent"
-                placeholder="Write your note here..."
-                class="input h-32"
-                aria-label="Note content"></textarea>
-      <button @click="createNote"
-              class="btn w-full"
-              aria-label="Save note">
-        Save Note
-      </button>
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="card p-4 bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+      <div class="text-3xl font-bold text-indigo-400">{{ notes.length }}</div>
+      <div class="text-xs text-white/60 mt-1">Total Notes</div>
+    </div>
+    <div class="card p-4 bg-gradient-to-br from-teal-500/20 to-green-500/20">
+      <div class="text-3xl font-bold text-teal-400">{{ notes.filter(n => n.is_public).length }}</div>
+      <div class="text-xs text-white/60 mt-1">Public Notes</div>
+    </div>
+    <div class="card p-4 bg-gradient-to-br from-orange-500/20 to-red-500/20">
+      <div class="text-3xl font-bold text-orange-400">{{ enrolledCourses.length }}</div>
+      <div class="text-xs text-white/60 mt-1">Courses Enrolled</div>
     </div>
   </div>
 
-  <!-- Notes List -->
-  <div v-if="notes.length === 0" class="text-center text-white/60 py-8">
-    <p>No notes yet. Create your first note above!</p>
+  <!-- Create Note Form -->
+  <div class="card mb-8 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-l-4 border-indigo-500">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
+        <span class="text-lg">📝</span>
+      </div>
+      <h3 class="text-lg font-semibold">Create a Study Note</h3>
+    </div>
+    <input v-model="newNoteTitle" type="text"
+           placeholder="Note title (e.g., 'Key Concepts - Module 1')"
+           class="input mb-3"
+           aria-label="Note title" />
+    <textarea v-model="newNoteContent"
+              placeholder="Write your study notes here... Use this for important concepts, summaries, or key takeaways from the course"
+              class="input h-32 mb-3"
+              aria-label="Note content"></textarea>
+    <div class="flex gap-2">
+      <button @click="createNote"
+              class="btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex-1"
+              aria-label="Save note">
+        Save Note
+      </button>
+      <label class="flex items-center gap-2 px-4 py-2 rounded-md bg-white/10 hover:bg-white/20 cursor-pointer transition">
+        <input type="checkbox" v-model="newNoteIsPublic" class="rounded" />
+        <span class="text-sm text-white/70">Make Public</span>
+      </label>
+    </div>
   </div>
-  <ul v-else class="space-y-4">
-    <li v-for="note in notes" :key="note.id" class="card">
-      <div v-if="editingNoteId !== note.id" class="flex justify-between items-start">
-        <div class="flex-1">
-          <h3 class="text-lg font-semibold">{{ note.title }}</h3>
-          <p class="text-sm text-white/70 mt-2">{{ note.content }}</p>
-          <p class="text-xs text-white/50 mt-3">
-            Created: {{ new Date(note.created_at).toLocaleDateString() }}
-          </p>
+
+  <!-- Notes View Tabs -->
+  <div class="mb-6 flex gap-2 border-b border-white/10">
+    <button @click="notesFilter = 'all'"
+            :class="['px-4 py-2 text-sm font-medium transition', notesFilter === 'all' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-white/60 hover:text-white']">
+      All Notes
+    </button>
+    <button @click="notesFilter = 'public'"
+            :class="['px-4 py-2 text-sm font-medium transition', notesFilter === 'public' ? 'text-teal-400 border-b-2 border-teal-400' : 'text-white/60 hover:text-white']">
+      Public
+    </button>
+    <button @click="notesFilter = 'private'"
+            :class="['px-4 py-2 text-sm font-medium transition', notesFilter === 'private' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-white/60 hover:text-white']">
+      Private
+    </button>
+  </div>
+
+  <!-- Notes List -->
+  <div v-if="filteredNotes.length === 0" class="text-center py-12">
+    <div class="text-4xl mb-3">📚</div>
+    <p class="text-white/60">{{ notesFilter === 'all' ? 'No notes yet. Start by creating your first study note!' : `No ${notesFilter} notes yet.` }}</p>
+  </div>
+
+  <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div v-for="note in filteredNotes" :key="note.id" class="card">
+      <div v-if="editingNoteId !== note.id">
+        <!-- View Mode -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-white">{{ note.title }}</h3>
+            <div class="flex items-center gap-2 mt-2">
+              <span :class="['px-2 py-1 rounded text-xs font-medium', note.is_public ? 'bg-teal-500/30 text-teal-300' : 'bg-orange-500/30 text-orange-300']">
+                {{ note.is_public ? '🔓 Public' : '🔒 Private' }}
+              </span>
+              <span class="text-xs text-white/50">{{ new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
+            </div>
+          </div>
         </div>
-        <div class="flex gap-2 ml-4">
+        <p class="text-sm text-white/70 mb-4 line-clamp-3">{{ note.content }}</p>
+        <div class="flex gap-2">
           <button @click="startEditNote(note)"
-                  class="px-3 py-1 rounded bg-blue-500/30 text-blue-300 text-sm hover:bg-blue-500/50 transition"
+                  class="flex-1 px-3 py-1 rounded bg-blue-500/30 text-blue-300 text-sm hover:bg-blue-500/50 transition"
                   aria-label="Edit note">
-            Edit
+            ✏️ Edit
           </button>
           <button @click="deleteNote(note.id)"
-                  class="px-3 py-1 rounded bg-red-500/30 text-red-300 text-sm hover:bg-red-500/50 transition"
+                  class="flex-1 px-3 py-1 rounded bg-red-500/30 text-red-300 text-sm hover:bg-red-500/50 transition"
                   aria-label="Delete note">
-            Delete
+            🗑️ Delete
           </button>
         </div>
       </div>
-      <div v-else class="flex flex-col gap-3">
+      <div v-else>
+        <!-- Edit Mode -->
+        <h4 class="text-sm font-semibold text-white/60 mb-2">Editing Note</h4>
         <input v-model="editingNote.title" type="text"
                placeholder="Note title"
-               class="input"
+               class="input mb-2"
                aria-label="Edit note title" />
         <textarea v-model="editingNote.content"
                   placeholder="Note content"
-                  class="input h-32"
+                  class="input h-32 mb-3"
                   aria-label="Edit note content"></textarea>
+        <label class="flex items-center gap-2 mb-3 px-3 py-1 rounded bg-white/10 w-fit">
+          <input type="checkbox" v-model="editingNote.is_public" class="rounded" />
+          <span class="text-sm text-white/70">Public</span>
+        </label>
         <div class="flex gap-2">
           <button @click="saveEditNote(note.id)"
-                  class="btn flex-1"
+                  class="flex-1 btn bg-green-500 text-white"
                   aria-label="Save changes">
-            Save Changes
+            ✓ Save
           </button>
           <button @click="cancelEditNote"
-                  class="px-4 py-2 rounded-md bg-gray-500 text-white font-semibold hover:bg-gray-600 transition"
+                  class="flex-1 px-4 py-2 rounded-md bg-gray-500/30 text-white hover:bg-gray-500/50 transition"
                   aria-label="Cancel editing">
-            Cancel
+            ✕ Cancel
           </button>
         </div>
       </div>
-    </li>
-  </ul>
+    </div>
+  </div>
 </section>
 
 
@@ -561,10 +696,38 @@ function openCourse(id) {
 }
 const newNoteTitle = ref('')
 const newNoteContent = ref('')
+const newNoteIsPublic = ref(false)
+const notesFilter = ref('all')
 const editingNoteId = ref(null)
-const editingNote = ref({ title: '', content: '' })
+const editingNote = ref({ title: '', content: '', is_public: false })
 
-// login/register form state used by the inline App.vue forms
+const filteredNotes = computed(() => {
+  if (notesFilter.value === 'public') return notes.value.filter(n => n.is_public)
+  if (notesFilter.value === 'private') return notes.value.filter(n => !n.is_public)
+  return notes.value
+})
+
+const courseSearchQuery = ref('')
+const courseDifficultyFilter = ref('')
+
+const filteredCourses = computed(() => {
+  let filtered = courses.value
+  
+  if (courseSearchQuery.value) {
+    const query = courseSearchQuery.value.toLowerCase()
+    filtered = filtered.filter(c => 
+      c.title.toLowerCase().includes(query) || 
+      c.description.toLowerCase().includes(query)
+    )
+  }
+  
+  if (courseDifficultyFilter.value) {
+    filtered = filtered.filter(c => c.difficulty === courseDifficultyFilter.value)
+  }
+  
+  return filtered
+})
+
 const password = ref('')
 const regUsername = ref('')
 const regEmail = ref('')
@@ -575,12 +738,13 @@ function startEditNote(note) {
   editingNote.value = {
     title: note.title,
     content: note.content,
+    is_public: note.is_public || false,
   }
 }
 
 function cancelEditNote() {
   editingNoteId.value = null
-  editingNote.value = { title: '', content: '' }
+  editingNote.value = { title: '', content: '', is_public: false }
 }
 
 async function saveEditNote(noteId) {
@@ -593,6 +757,7 @@ async function saveEditNote(noteId) {
     const res = await axios.put(`/api/notes/${noteId}/`, {
       title: editingNote.value.title,
       content: editingNote.value.content,
+      is_public: editingNote.value.is_public,
     })
     
     if (res.status === 200) {
@@ -601,7 +766,7 @@ async function saveEditNote(noteId) {
         notes.value[noteIndex] = res.data
       }
       editingNoteId.value = null
-      editingNote.value = { title: '', content: '' }
+      editingNote.value = { title: '', content: '', is_public: false }
       toast.value?.showToast('Note updated successfully!', 'success', 2000)
     } else {
       toast.value?.showToast('Failed to update note.', 'error')
@@ -682,11 +847,13 @@ async function createNote() {
     const res = await axios.post('/api/notes/', {
       title: newNoteTitle.value,
       content: newNoteContent.value,
+      is_public: newNoteIsPublic.value,
     })
     if (res.status === 201) {
       notes.value.push(res.data)
       newNoteTitle.value = ''
       newNoteContent.value = ''
+      newNoteIsPublic.value = false
       toast.value?.showToast('Note created successfully!', 'success', 2000)
     } else {
       toast.value?.showToast('Failed to save note.', 'error')
