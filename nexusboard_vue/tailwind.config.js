@@ -13,8 +13,8 @@ module.exports = {
         'mb-highlight': '#a78bfa'
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
-        heading: ['Poppins', 'Inter', 'sans-serif']
+        sans: ['Atkinson Hyperlegible', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
+        heading: ['Space Grotesk', 'sans-serif']
       }
     }
   },

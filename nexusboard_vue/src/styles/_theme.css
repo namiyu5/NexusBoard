@@ -16,7 +16,9 @@
 /* Subtle starry background (used on homepage) */
 .starry-bg {
   position: relative;
-  background-color: var(--mb-bg);
+  background:
+    linear-gradient(180deg, rgba(6, 10, 20, 0.78), rgba(6, 10, 20, 0.9)),
+    url('@/assets/img/Copilot_20251208_154055.png') center/cover no-repeat;
   overflow: hidden;
 }
 .starry-bg::before,

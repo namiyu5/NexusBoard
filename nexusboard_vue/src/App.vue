@@ -26,7 +26,7 @@
     </header>
 
     <!-- Main content -->
-    <main class="flex-1 flex flex-col items-center justify-center px-6 py-12">
+    <main :class="view==='home' ? 'flex-1 flex flex-col items-center justify-center' : 'flex-1 flex flex-col items-center justify-center px-6 py-12'">
       <section v-if="view==='login'" class="w-full max-w-md">
   <div class="flex flex-col items-center mb-6">
     <h2 class="font-extrabold text-3xl md:text-4xl text-center text-yellow-300 drop-shadow-lg">
@@ -99,19 +99,22 @@
 
 
      
-      <section v-if="view==='home'" class="w-full starry-bg">
+      <section v-if="view==='home'" class="w-full min-h-[calc(100vh-80px)]" :style="heroBackgroundStyle">
         <div class="max-w-6xl mx-auto px-6 py-12 space-y-10 starry-content">
           <!-- Hero -->
           <div class="grid md:grid-cols-2 gap-8 items-center">
             <div class="space-y-6">
-              <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-mb-highlight">
+              <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-mb-highlight font-heading">
                 NexusBoard<br>
-                For Learners,<br>
-                By Learners
+For Learners,<br>
+By Learners
               </h1>
+              <br>
               <p class="text-lg text-mb-muted max-w-2xl">
-                NexusBoard is a community-first learning hub: find practical courses, publish brief notes,
-                and collaborate with peers. Designed for fast progress and real-world skills.
+                Part of <span class="text-mb-highlight font-semibold">The Nexus Project</span> 
+                <br>Connecting communities through learning. 
+                NexusBoard bridges the gaps in education by providing accessible, practical courses and collaborative spaces where 
+                every voice is heard. Together, we're building a constellation of knowledge where no one is left behind.
               </p>
 
               <div class="flex gap-4 items-center">
@@ -569,6 +572,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
 import { setAuthTokens, clearAuth, verifyAuth } from './api.js'
 import logo from './assets/favicon.ico'
+import heroBg from './assets/img/Copilot_20251208_154055.png'
 import CourseDetail from './components/CourseDetail.vue'
 import AdminDashboard from './components/AdminDashboard.vue'
 import Toast from './components/Toast.vue'
@@ -591,6 +595,11 @@ function refreshAuthState() {
 }
 
 const featuredCourse = computed(() => (courses.value && courses.value.length) ? courses.value[0] : { id: null, title: '', description: '', duration: '' })
+
+// Hero background image styling
+const heroBackgroundStyle = computed(() => ({
+  background: `linear-gradient(180deg, rgba(6,10,20,0.82), rgba(6,10,20,0.9)), url(${heroBg}) center/cover no-repeat`
+}))
 
 // API base URL — update VITE_API_BASE in .env.local if needed for development
 const API_BASE = import.meta.env.VITE_API_BASE || ''
