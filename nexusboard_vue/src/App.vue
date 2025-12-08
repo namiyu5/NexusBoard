@@ -1,22 +1,22 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-gradient-to-br from-neutral-900 via-slate-900 to-zinc-900 text-white">
+  <div class="flex flex-col min-h-screen bg-mb-bg text-white font-sans">
     <!-- Navbar -->
-    <header class="w-full py-4 border-b border-white/10">
+    <header class="w-full py-4 border-b border-white/6">
       <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
-              <div class="text-2xl font-bold">NexusBoard<img :src="logo" alt="NexusBoard Logo" class="inline-block ml-2 w-8 h-8"></div>
+              <div class="text-2xl font-bold text-mb-muted">NexusBoard<img :src="logo" alt="NexusBoard Logo" class="inline-block ml-2 w-8 h-8"></div>
               <nav class="space-x-6">
-          <button @click="view='home'" class="nav-btn">Home</button>
-          <button @click="view='courses'" class="nav-btn">Courses</button>
-          <button @click="view='notes'" class="nav-btn">Notes</button>
-          <button @click="view='dashboard'" class="nav-btn">Dashboard</button>
-          <button v-if="isAdmin" @click="view='admin'" class="nav-btn">Admin</button>
+          <button @click="view='home'" class="nav-btn text-mb-muted hover:text-white">Home</button>
+          <button @click="view='courses'" class="nav-btn text-mb-muted hover:text-white">Courses</button>
+          <button @click="view='notes'" class="nav-btn text-mb-muted hover:text-white">Notes</button>
+          <button @click="view='dashboard'" class="nav-btn text-mb-muted hover:text-white">Dashboard</button>
+          <button v-if="isAdmin" @click="view='admin'" class="nav-btn text-mb-muted hover:text-white">Admin</button>
           <template v-if="isLoggedIn">
-            <span class="text-sm text-white/70 mr-3">Logged in as {{ usernameDisplay }}</span>
-            <button @click="logout" class="nav-btn">Logout</button>
+            <span class="text-sm text-mb-muted mr-3">Logged in as {{ usernameDisplay }}</span>
+            <button @click="logout" class="nav-btn text-mb-primary">Logout</button>
           </template>
           <template v-else>
-            <button @click="goToLogin" class="nav-btn">Login</button>
-            <button @click="goToRegister" class="nav-btn">Register</button>
+            <button @click="goToLogin" class="nav-btn text-mb-primary">Login</button>
+            <button @click="goToRegister" class="nav-btn text-mb-muted">Register</button>
           </template>
         </nav>
       </div>
@@ -38,10 +38,9 @@
     <input v-model="username" type="text"
            placeholder="Username"
            class="input" />
-    <input v-model="password" type="password"
-           placeholder="•••••••••••
-           "
-           class="input" />
+        <input v-model="password" type="password"
+          placeholder="•••••••••••"
+          class="input" />
 
     <div class="w-full flex justify-end">
       <a href="#" class="text-xs font-bold text-indigo-300 hover:underline">Forgot password?</a>
@@ -102,172 +101,167 @@
 </section>
 
 
-      <!-- Home: polished UX-focused landing -->
-      <section v-if="view==='home'" class="w-full max-w-6xl mx-auto px-6 py-12 space-y-10">
-        <!-- Hero -->
-        <div class="grid md:grid-cols-2 gap-8 items-center">
-          <div class="space-y-6">
-        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-yellow-300">
-          NexusBoard<br>
-          For Learners,<br>
-          By Learners
-        </h1>
-        <p class="text-lg text-white/80 max-w-2xl">
-          NexusBoard is a community-first learning hub: find practical courses, publish brief notes,
-          and collaborate with peers. Designed for fast progress and real-world skills.
-        </p>
+     
+      <section v-if="view==='home'" class="w-full starry-bg">
+        <div class="max-w-6xl mx-auto px-6 py-12 space-y-10 starry-content">
+          <!-- Hero -->
+          <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="space-y-6">
+              <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-mb-highlight">
+                NexusBoard<br>
+                For Learners,<br>
+                By Learners
+              </h1>
+              <p class="text-lg text-mb-muted max-w-2xl">
+                NexusBoard is a community-first learning hub: find practical courses, publish brief notes,
+                and collaborate with peers. Designed for fast progress and real-world skills.
+              </p>
 
-        <div class="flex gap-4 items-center">
-          <button @click="view='courses'" class="cta-btn bg-yellow-400 text-indigo-900 shadow">
-            Browse Courses
-          </button>
-          <button @click="view='register'" class="cta-btn bg-indigo-500 text-white shadow">
-            Join Free
-          </button>
-          <button @click="view='login'" class="px-4 py-2 rounded-md text-sm text-white/80 border border-white/10 hover:bg-white/5">
-            Sign in
-          </button>
-        </div>
+              <div class="flex gap-4 items-center">
+                <button @click="view='courses'" class="cta-btn btn btn-primary">Browse Courses</button>
+                <button @click="view='register'" class="cta-btn btn btn-secondary">Join Free</button>
+                <button @click="view='login'" class="btn-ghost">Sign in</button>
+              </div>
 
-        <div class="mt-4 flex gap-6 flex-wrap text-sm text-white/70">
-          <div class="flex items-center gap-3">
-            <div class="text-2xl font-bold text-white">{{ courses.length }}</div>
-            <div>
-          <div class="text-xs">Courses</div>
-          <div class="text-xs text-white/60">Community-created</div>
-            </div>
-          </div>
+              <div class="mt-4 flex gap-6 flex-wrap text-sm text-mb-muted">
+                <div class="flex items-center gap-3">
+                  <div class="text-2xl font-bold text-mb-muted">{{ courses.length }}</div>
+                  <div>
+                    <div class="text-xs">Courses</div>
+                    <div class="text-xs text-white/60">Community-created</div>
+                  </div>
+                </div>
 
-          <div class="flex items-center gap-3">
-            <div class="text-2xl font-bold text-white">{{ notes.length }}</div>
-            <div>
-          <div class="text-xs">Notes</div>
-          <div class="text-xs text-white/60">Shared insights</div>
-            </div>
-          </div>
+                <div class="flex items-center gap-3">
+                  <div class="text-2xl font-bold text-mb-muted">{{ notes.length }}</div>
+                  <div>
+                    <div class="text-xs">Notes</div>
+                    <div class="text-xs text-white/60">Shared insights</div>
+                  </div>
+                </div>
 
-          <div class="flex items-center gap-3">
-            <div class="text-2xl font-bold text-white">{{ Math.max(1200, enrolledCourses.length * 37) }}</div>
-            <div>
-          <div class="text-xs">Active learners</div>
-          <div class="text-xs text-white/60">Engaged recently</div>
-            </div>
-          </div>
-        </div>
-          </div>
-
-          <!-- Visual / Illustration block -->
-          <div class="bg-[linear-gradient(135deg,#0f172a_0%,#04263a_100%)] rounded-2xl p-6 shadow-xl">
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center justify-between">
-            <div>
-          <div class="text-sm text-white/60">Featured course</div>
-          <div class="text-lg font-bold text-white">{{ featuredCourse.title }}</div>
-            </div>
-            <div class="text-xs text-white/60">6 weeks</div>
-          </div>
-
-          <p class="text-sm text-white/70">
-            {{ featuredCourse.description }}
-          </p>
-
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <button @click="openCourse(featuredCourse.id)" class="btn bg-teal-400 text-black">Start Learning</button>
-            <button @click="enroll(featuredCourse.id)" class="btn bg-indigo-500 text-white">Enroll</button>
-          </div>
-
-          <div class="mt-5">
-            <div class="text-xs text-white/60 mb-2">Recent notes from the community</div>
-            <ul class="space-y-2">
-          <li v-for="note in notes.slice(-3).reverse()" :key="note.id" class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm">
-              {{ (note.title && note.title.length) ? note.title.charAt(0).toUpperCase() : 'N' }}
-            </div>
-            <div class="text-sm">
-              <div class="font-semibold text-white truncate max-w-xs">{{ note.title }}</div>
-              <div class="text-xs text-white/60 truncate max-w-xs">{{ note.content }}</div>
-            </div>
-          </li>
-          <li v-if="!notes.length" class="text-xs text-white/60">No notes yet — be the first to share!</li>
-            </ul>
-          </div>
-        </div>
-          </div>
-        </div>
-
-        <!-- Quick categories + featured carousel -->
-        <div class="space-y-6">
-          <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-white">Featured courses</h2>
-        <div class="text-sm text-white/60">Handpicked for fast learning</div>
-          </div>
-
-          <div class="overflow-x-auto pb-2 -mx-6 px-6">
-        <div class="flex gap-4 min-w-max">
-          <article v-for="course in courses" :key="course.id" class="min-w-[280px] bg-gradient-to-tr from-[rgba(255,255,255,0.02)] to-[rgba(255,255,255,0.01)] rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 pr-3">
-                <h3 class="text-lg font-semibold text-white truncate">{{ course.title }}</h3>
-                <p class="text-xs text-white/60 mt-2 line-clamp-3">{{ course.description }}</p>
-                <div class="mt-3 flex items-center gap-3 text-xs text-white/60">
-                  <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.lessons ? course.lessons.length : '—' }} lessons</div>
-                  <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.duration || 'Self-paced' }}</div>
+                <div class="flex items-center gap-3">
+                  <div class="text-2xl font-bold text-mb-muted">{{ Math.max(1200, enrolledCourses.length * 37) }}</div>
+                  <div>
+                    <div class="text-xs">Active learners</div>
+                    <div class="text-xs text-white/60">Engaged recently</div>
+                  </div>
                 </div>
               </div>
-              <div class="flex flex-col items-end gap-3">
-                <div v-if="enrolledCourses.includes(course.id)" class="text-xs text-green-300 font-semibold">Enrolled</div>
-                <div class="text-xs text-white/50">{{ course.level || '' }}</div>
+            </div>
+
+            <!-- Visual / Illustration block -->
+            <div class="bg-[linear-gradient(135deg,#0f172a_0%,#04263a_100%)] rounded-2xl p-6 shadow-xl">
+              <div class="flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-sm text-white/60">Featured course</div>
+                    <div class="text-lg font-bold text-white">{{ featuredCourse.title }}</div>
+                  </div>
+                  <div class="text-xs text-white/60">6 weeks</div>
+                </div>
+
+                <p class="text-sm text-white/70">{{ featuredCourse.description }}</p>
+
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                  <button @click="openCourse(featuredCourse.id)" class="btn btn-primary">Start Learning</button>
+                  <button @click="enroll(featuredCourse.id)" class="btn btn-secondary">Enroll</button>
+                </div>
+
+                <div class="mt-5">
+                  <div class="text-xs text-white/60 mb-2">Recent notes from the community</div>
+                  <ul class="space-y-2">
+                    <li v-for="note in notes.slice(-3).reverse()" :key="note.id" class="flex items-start gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm">
+                        {{ (note.title && note.title.length) ? note.title.charAt(0).toUpperCase() : 'N' }}
+                      </div>
+                      <div class="text-sm">
+                        <div class="font-semibold text-white truncate max-w-xs">{{ note.title }}</div>
+                        <div class="text-xs text-white/60 truncate max-w-xs">{{ note.content }}</div>
+                      </div>
+                    </li>
+                    <li v-if="!notes.length" class="text-xs text-white/60">No notes yet — be the first to share!</li>
+                  </ul>
+                </div>
               </div>
             </div>
-            <div class="mt-4 flex gap-3 items-center">
-              <button @click="openCourse(course.id)" class="px-3 py-2 rounded-md bg-yellow-400 text-indigo-900 text-sm font-semibold shadow">Preview</button>
-              <button @click="enroll(course.id)" class="px-3 py-2 rounded-md bg-gradient-to-r from-teal-400 to-emerald-400 text-black text-sm font-semibold shadow" :class="{'opacity-60 cursor-not-allowed': enrolledCourses.includes(course.id)}">
-                {{ enrolledCourses.includes(course.id) ? 'Go to course' : 'Enroll' }}
-              </button>
+          </div>
+
+         
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-bold text-white">Featured courses</h2>
+              <div class="text-sm text-white/60">Handpicked for fast learning</div>
             </div>
-          </article>
-        </div>
+
+            <div class="overflow-x-auto pb-2 -mx-6 px-6">
+              <div class="flex gap-4 min-w-max">
+                <article v-for="course in courses" :key="course.id" class="min-w-[280px] bg-gradient-to-tr from-[rgba(255,255,255,0.02)] to-[rgba(255,255,255,0.01)] rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 pr-3">
+                      <h3 class="text-lg font-semibold text-white truncate">{{ course.title }}</h3>
+                      <p class="text-xs text-white/60 mt-2 line-clamp-3">{{ course.description }}</p>
+                      <div class="mt-3 flex items-center gap-3 text-xs text-white/60">
+                        <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.lessons ? course.lessons.length : '—' }} lessons</div>
+                        <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.duration || 'Self-paced' }}</div>
+                        <div class="px-2 py-1 rounded-full text-xs" :class="course.level ? 'bg-white/3' : ''">{{ course.level || 'Level: N/A' }}</div>
+                      </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-3">
+                      <div v-if="enrolledCourses.includes(course.id)" class="text-xs text-green-300 font-semibold">Enrolled</div>
+                      <div class="text-xs text-white/50">{{ course.level || '' }}</div>
+                    </div>
+                  </div>
+                  <div class="mt-4 flex gap-3 items-center">
+                    <button @click="openCourse(course.id)" class="btn btn-ghost text-mb-muted" aria-label="View course {{ course.title }}">View course</button>
+                    <button @click="enroll(course.id)" class="btn btn-primary" :class="{'opacity-60 cursor-not-allowed': enrolledCourses.includes(course.id)}" :disabled="enrolledCourses.includes(course.id)">
+                      {{ enrolledCourses.includes(course.id) ? 'Go to course' : 'Start learning' }}
+                    </button>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="flex flex-wrap gap-3">
+              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Web Development</button>
+              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Python</button>
+              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Design</button>
+              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Data Science</button>
+              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Security</button>
+            </div>
           </div>
 
-          <!-- Categories -->
-          <div class="flex flex-wrap gap-3">
-        <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Web Development</button>
-        <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Python</button>
-        <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Design</button>
-        <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Data Science</button>
-        <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Security</button>
-          </div>
-        </div>
+          <!-- Social proof & testimonials -->
+          <div class="grid md:grid-cols-3 gap-6">
+            <div class="card">
+              <div class="text-sm text-white/60">Why learners love NexusBoard</div>
+              <div class="mt-3 font-semibold text-white">Short, practical lessons — built by the community.</div>
+              <p class="text-xs text-white/60 mt-2">Real projects, quick wins, and helpful peers — join study groups and share notes that stick.</p>
+            </div>
 
-        <!-- Social proof & testimonials -->
-        <div class="grid md:grid-cols-3 gap-6">
-          <div class="card">
-        <div class="text-sm text-white/60">Why learners love NexusBoard</div>
-        <div class="mt-3 font-semibold text-white">Short, practical lessons — built by the community.</div>
-        <p class="text-xs text-white/60 mt-2">Real projects, quick wins, and helpful peers — join study groups and share notes that stick.</p>
-          </div>
+            <div class="card">
+              <div class="text-xs text-white/60">Testimonials</div>
+              <div class="mt-3 space-y-3">
+                <div class="text-sm">
+                  <div class="font-semibold text-white">"Great for building practical skills quickly."</div>
+                  <div class="text-xs text-white/60">— Alex, Frontend dev</div>
+                </div>
+                <div class="text-sm">
+                  <div class="font-semibold text-white">"Notes are concise and super helpful."</div>
+                  <div class="text-xs text-white/60">— Priya, Data scientist</div>
+                </div>
+              </div>
+            </div>
 
-          <div class="card">
-        <div class="text-xs text-white/60">Testimonials</div>
-        <div class="mt-3 space-y-3">
-          <div class="text-sm">
-            <div class="font-semibold text-white">"Great for building practical skills quickly."</div>
-            <div class="text-xs text-white/60">— Alex, Frontend dev</div>
-          </div>
-          <div class="text-sm">
-            <div class="font-semibold text-white">"Notes are concise and super helpful."</div>
-            <div class="text-xs text-white/60">— Priya, Data scientist</div>
-          </div>
-        </div>
-          </div>
-
-          <div class="card">
-        <div class="text-xs text-white/60">Get started</div>
-        <div class="mt-3 font-semibold text-white">Create your first note or enroll in a course</div>
-        <div class="mt-4 flex gap-3">
-          <button @click="view='notes'" class="btn bg-indigo-500 text-white">Write a note</button>
-          <button @click="view='courses'" class="btn bg-yellow-400 text-indigo-900">Find a course</button>
-        </div>
+            <div class="card">
+              <div class="text-xs text-white/60">Get started</div>
+              <div class="mt-3 font-semibold text-white">Create your first note or enroll in a course</div>
+              <div class="mt-4 flex gap-3">
+                <button @click="view='notes'" class="btn bg-indigo-500 text-white">Write a note</button>
+                <button @click="view='courses'" class="btn bg-yellow-400 text-indigo-900">Find a course</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -353,8 +347,38 @@
     </main>
 
     <!-- Footer -->
-    <footer class="w-full py-6 border-t border-white/10 text-center text-white/60 text-sm">
-      © 2025 NexusBoard Community — Built for learners, by learners
+    <footer class="w-full py-8 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-6 flex items-center justify-between text-sm text-mb-muted">
+        <div>© {{ new Date().getFullYear() }} NexusBoard Community — Built for learners, by learners</div>
+        <div class="flex items-center gap-4">
+          <nav class="flex gap-3 items-center" aria-label="Footer social links">
+            <a href="https://github.com/namiyu5" target="_blank" rel="noopener" class="text-mb-muted hover:text-mb-primary" aria-label="GitHub">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 .5C5.73.5.75 5.48.75 11.75c0 4.92 3.19 9.09 7.61 10.56.56.10.77-.24.77-.54 0-.26-.01-1.12-.02-2.03-3.09.67-3.74-1.49-3.74-1.49-.51-1.29-1.25-1.64-1.25-1.64-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1.01 1.73 2.65 1.23 3.3.94.10-.73.39-1.23.71-1.51-2.47-.28-5.07-1.24-5.07-5.51 0-1.22.44-2.22 1.16-3-.12-.28-.5-1.4.11-2.92 0 0 .95-.3 3.12 1.16.90-.25 1.86-.37 2.82-.37.96 0 1.92.12 2.82.37 2.16-1.46 3.11-1.16 3.11-1.16.62 1.52.24 2.64.12 2.92.72.78 1.15 1.78 1.15 3 0 4.28-2.6 5.23-5.08 5.5.4.35.77 1.04.77 2.10 0 1.52-.01 2.74-.01 3.11 0 .30.21.65.78.54C19.06 20.84 22.25 16.67 22.25 11.75 22.25 5.48 17.27.5 11 .5z"/>
+              </svg>
+            </a>
+            <a href="https://www.instagram.com" target="_blank" rel="noopener" class="text-mb-muted hover:text-mb-primary" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm0 2h10c1.66 0 3 1.34 3 3v10c0 1.66-1.34 3-3 3H7c-1.66 0-3-1.34-3-3V7c0-1.66 1.34-3 3-3zm5 2.5A4.5 4.5 0 1 0 16.5 11 4.5 4.5 0 0 0 12 6.5zm0 2A2.5 2.5 0 1 1 9.5 11 2.5 2.5 0 0 1 12 8.5zM18.5 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+              </svg>
+            </a>
+            <a href="https://www.facebook.com" target="_blank" rel="noopener" class="text-mb-muted hover:text-mb-primary" aria-label="Facebook">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22 12a10 10 0 1 0-11.5 9.95v-7.05H8.9V12h1.6V9.8c0-1.58.94-2.46 2.38-2.46.69 0 1.42.12 1.42.12v1.56h-.8c-.79 0-1.04.49-1.04.99V12h1.77l-.28 2.9h-1.49v7.05A10 10 0 0 0 22 12z"/>
+              </svg>
+            </a>
+            <a href="#" target="_blank" rel="noopener" class="text-mb-muted hover:text-mb-primary" aria-label="X">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.28 4.28 0 0 0 1.88-2.37 8.55 8.55 0 0 1-2.72 1.04 4.26 4.26 0 0 0-7.26 3.88A12.09 12.09 0 0 1 3.15 4.6a4.26 4.26 0 0 0 1.32 5.68c-.66-.02-1.28-.2-1.82-.5v.05c0 2.07 1.47 3.8 3.42 4.19-.36.1-.74.15-1.13.15-.28 0-.55-.03-.82-.07.55 1.73 2.15 2.99 4.05 3.02A8.56 8.56 0 0 1 2 19.54a12.07 12.07 0 0 0 6.54 1.92c7.85 0 12.15-6.5 12.15-12.14l-.01-.55A8.6 8.6 0 0 0 22.46 6z"/>
+              </svg>
+            </a>
+          </nav>
+          <div class="flex gap-4">
+            <a href="#" class="hover:underline text-mb-muted">Privacy</a>
+            <a href="#" class="hover:underline text-mb-muted">Terms</a>
+          </div>
+        </div>
+      </div>
     </footer>
   </div>
 </template>
@@ -588,32 +612,37 @@ async function enroll(courseId) {
     view.value = 'login'
     return
   }
+  // Optimistic UI: immediately mark as enrolled so button turns into 'Start learning'
+  let addedOptimistically = false
+  if (!enrolledCourses.value.includes(courseId)) {
+    enrolledCourses.value.push(courseId)
+    addedOptimistically = true
+  }
+  currentCourseId.value = courseId
+  // navigate to course page immediately
+  view.value = 'course'
+
+  // notify any open course-detail component that enrollment occurred (optimistic)
+  try {
+    window.dispatchEvent(new CustomEvent('enrolled', { detail: { courseId } }))
+  } catch (e) {
+    /* ignore if window isn't available */
+  }
 
   try {
-    // POST to enrollments API. api.js config applies Authorization header.
     const res = await axios.post('/api/enrollments/', { course: courseId })
-    if (res && (res.status === 201 || res.status === 200)) {
-      // server returned existing or new enrollment
-      if (!enrolledCourses.value.includes(courseId)) enrolledCourses.value.push(courseId)
-      currentCourseId.value = courseId
-      view.value = 'course'
-    } else {
-      // fallback behavior
-      if (!enrolledCourses.value.includes(courseId)) enrolledCourses.value.push(courseId)
-      currentCourseId.value = courseId
-      view.value = 'course'
+    if (!(res && (res.status === 201 || res.status === 200))) {
+      // server didn't create enrollment; leave optimistic state (user will see server state on refresh)
     }
   } catch (err) {
-    // If unauthorized, send user to login
+    // On error (e.g., 401), revert optimistic update and prompt login
     if (err?.response?.status === 401) {
+      // revert optimistic enrollment
+      if (addedOptimistically) enrolledCourses.value = enrolledCourses.value.filter(id => id !== courseId)
       view.value = 'login'
       return
     }
     console.error('Enrollment failed', err)
-    // still open course locally as fallback
-    if (!enrolledCourses.value.includes(courseId)) enrolledCourses.value.push(courseId)
-    currentCourseId.value = courseId
-    view.value = 'course'
   }
 }
 

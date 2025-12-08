@@ -2,5 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './styles/_theme.css';
 
 html, body, #app { height: 100%; }
+
+/* override Tailwind base colors to use variables where useful */
+body{ background-color: var(--mb-bg); color: var(--mb-muted); }
+

@@ -26,12 +26,30 @@ class LessonInline(admin.StackedInline):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'published', 'created_at')
+    list_editable = ('published',)
+    list_filter = ('published', 'created_at')
     prepopulated_fields = {'slug': ('title',)}
     search_fields = ('title', 'excerpt')
     inlines = [LessonInline]
     formfield_overrides = {
-        djmodels.TextField: {'widget': Textarea(attrs={'rows': 5, 'cols': 80})},
+        djmodels.TextField: {
+            'widget': Textarea(attrs={'rows': 5, 'cols': 80}),
+        },
     }
+
+    actions = ['make_published', 'make_unpublished']
+
+    def make_published(self, request, queryset):
+        updated = queryset.update(published=True)
+        self.message_user(request, f"{updated} course(s) marked as published")
+    make_published.short_description = 'Mark selected courses as published'
+
+    def make_unpublished(self, request, queryset):
+        updated = queryset.update(published=False)
+        self.message_user(
+            request, f"{updated} course(s) marked as unpublished"
+        )
+    make_unpublished.short_description = 'Mark selected courses as unpublished'
 
 
 class LessonAdminForm(forms.ModelForm):
@@ -54,9 +72,16 @@ class LessonAdmin(admin.ModelAdmin):
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lesson', 'title', 'author', 'created_at')
+    list_display = (
+        'id',
+        'lesson',
+        'title',
+        'author',
+        'is_public',
+        'created_at',
+    )
     search_fields = ('title', 'content', 'author')
-    list_filter = ('lesson',)
+    list_filter = ('lesson', 'is_public')
 
 
 @admin.register(Enrollment)

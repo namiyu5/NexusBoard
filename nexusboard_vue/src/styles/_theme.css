@@ -1,0 +1,183 @@
+:root{
+  --mb-bg: #0b0b0d;
+  --mb-surface: #17181a;
+  --mb-editor-bg: #0b0f14;
+  --mb-editor-fg: #e6eef8;
+  --mb-muted: #b3bac3;
+  --mb-primary: #60a5fa;
+  --mb-secondary: #34d399;
+  --mb-highlight: #a78bfa;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --card-padding: 1rem;
+}
+
+/* Subtle starry background (used on homepage) */
+.starry-bg {
+  position: relative;
+  background-color: var(--mb-bg);
+  overflow: hidden;
+}
+.starry-bg::before,
+.starry-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.starry-bg::before {
+  background-image:
+    radial-gradient(#ffffff 1px, rgba(255,255,255,0) 1px),
+    radial-gradient(#ffffff 0.8px, rgba(255,255,255,0) 1px);
+  background-size: 72px 72px, 130px 130px;
+  opacity: 0.06;
+  transform: translateZ(0);
+  animation: stars-move 120s linear infinite;
+}
+.starry-bg::after {
+  background-image: radial-gradient(#ffffff 1px, rgba(255,255,255,0) 1px);
+  background-size: 18px 18px;
+  opacity: 0.025;
+  mix-blend-mode: screen;
+  animation: twinkle 6s ease-in-out infinite;
+}
+
+@keyframes stars-move {
+  from { transform: translateY(0); }
+  to { transform: translateY(-240px); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.02; }
+  50% { opacity: 0.08; }
+}
+
+/* Ensure content sits above the star layers */
+.starry-content { position: relative; z-index: 1; }
+
+
+
+/* Utility helpers for non-Tailwind areas */
+body{
+  background-color: var(--mb-bg);
+  color: var(--mb-muted);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.surface{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  background-color: var(--mb-surface);
+  border-radius: var(--radius-md);
+  padding: var(--card-padding);
+  color: #e6eef8;
+}
+
+.btn-primary{
+  background-color: var(--mb-primary);
+  color: #071520;
+  border-radius: var(--radius-sm);
+  padding: .5rem 0.9rem;
+}
+
+.link-accent{ color: var(--mb-highlight); }
+
+/* Small helper to improve card contrast on the dark background */
+.card-elevated{
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+}
+
+/* WYSIWYG content area styling */
+.prose-dark p{ color: #dbe8ff }
+
+/* Prefer Poppins for headings and Inter for body (declared in index.html) */
+h1,h2,h3,h4,h5{ font-family: Poppins, Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
+/* Global UI components */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  background: var(--mb-primary);
+  color: #071520;
+  padding: .6rem .9rem;
+  border-radius: 10px;
+  font-weight:600;
+  border: none;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+}
+
+.btn-primary{ background: var(--mb-primary); color: #071520 }
+.btn-secondary{ background: var(--mb-secondary); color: #071520 }
+.btn-ghost{ background: transparent; color: var(--mb-muted); border: 1px solid rgba(255,255,255,0.06); }
+.btn.small{ padding: .35rem .6rem; border-radius: 8px; font-size: .9rem }
+
+.card{ background: var(--mb-surface); padding: var(--card-padding); border-radius: var(--radius-md); box-shadow: 0 8px 30px rgba(2,6,23,0.6); color: var(--mb-muted) }
+.surface{ background: var(--mb-surface); }
+
+.muted{ color: var(--mb-muted) }
+.accent{ color: var(--mb-highlight) }
+
+/* layout helpers */
+.page-container{ max-width: 1200px; margin: 0 auto; padding: 1.25rem }
+
+/* Global CKEditor 5 theming: ensure editor editable area matches site dark theme
+   These rules are global (not scoped) so they apply inside admin/dashboard and any place
+   where CKEditor injects its DOM nodes. They use theme variables with sensible fallbacks. */
+.ck-editor__editable,
+.ck-editor__editable_inline,
+.ck-content,
+.ck-editor__main {
+  background: var(--mb-editor-bg, #0b0f14) !important;
+  color: var(--mb-editor-fg, #e6eef8) !important;
+}
+.ck-content p,
+.ck-content h1,
+.ck-content h2,
+.ck-content h3,
+.ck-content li,
+.ck-content span {
+  color: var(--mb-editor-fg, #e6eef8) !important;
+}
+.ck-toolbar {
+  background: rgba(255,255,255,0.02) !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ck-editor__top { border-bottom: 1px solid rgba(255,255,255,0.04) !important; }
+.ck-placeholder { color: rgba(255,255,255,0.45) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ck-content, .ck-editor__editable { transition: none !important; animation: none !important; }
+}
+
+/* Global form controls styled to match the dark editor and be readable */
+input.input, textarea.input, select.input,
+input[type="text"], input[type="email"], input[type="number"], input[type="password"], textarea, select {
+  background: var(--mb-editor-bg, #0b0f14);
+  color: var(--mb-editor-fg, #e6eef8);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+}
+
+input.input::placeholder, textarea::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+input.input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--mb-primary);
+  box-shadow: 0 0 0 4px rgba(96,165,250,0.06);
+}
+
+/* Make small inputs (width classes used in admin) consistent */
+.input.w-24 { padding: 0.45rem 0.6rem; }
+
+/* Ensure content inside cards and other containers uses readable foreground */
+.card, .surface { color: var(--mb-muted); }
+
+

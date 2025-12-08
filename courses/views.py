@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from .models import Course, Lesson, Note, Enrollment
+from django.db import models as djmodels
 from .serializers import CourseSerializer, LessonSerializer
 from .serializers import NoteSerializer, EnrollmentSerializer
 
@@ -30,6 +31,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer
     # Only authenticated users may list/create notes; object-level
     # edits/deletes are restricted to the note author or staff.
+    
     class IsAuthorOrReadOnly(permissions.BasePermission):
         def has_permission(self, request, view):
             # require authentication for listing and creating
@@ -42,16 +44,34 @@ class NoteViewSet(viewsets.ModelViewSet):
             # staff can modify/delete any note
             if request.user and request.user.is_staff:
                 return True
-            # only the original author (stored as username string) may modify/delete
-            return getattr(obj, 'author', None) == getattr(request.user, 'username', None)
+            # only the original author (stored as username string) may
+            # modify/delete
+                return (
+                    getattr(obj, 'author', None)
+                    == getattr(request.user, 'username', None)
+                )
 
     permission_classes = [IsAuthorOrReadOnly]
 
     def get_queryset(self):
         qs = Note.objects.select_related('lesson').all()
-        lesson_id = self.request.query_params.get('lesson')
+        request = self.request
+        # Filter by lesson if requested
+        lesson_id = request.query_params.get('lesson')
         if lesson_id:
             qs = qs.filter(lesson_id=lesson_id)
+
+        # If staff, return everything (admins manage notes)
+        user = getattr(request, 'user', None)
+        if user and user.is_staff:
+            return qs
+
+        # For authenticated non-staff users, show only public notes or
+        # notes they authored
+        username = getattr(user, 'username', None)
+        qs = qs.filter(
+            djmodels.Q(is_public=True) | djmodels.Q(author=username)
+        )
         return qs
 
     def perform_create(self, serializer):
