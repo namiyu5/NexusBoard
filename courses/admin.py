@@ -25,9 +25,9 @@ class LessonInline(admin.StackedInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'published', 'created_at')
-    list_editable = ('published',)
-    list_filter = ('published', 'created_at')
+    list_display = ('id', 'title', 'difficulty', 'duration_hours', 'published', 'created_at')
+    list_editable = ('published', 'difficulty', 'duration_hours')
+    list_filter = ('published', 'difficulty', 'created_at')
     prepopulated_fields = {'slug': ('title',)}
     search_fields = ('title', 'excerpt')
     inlines = [LessonInline]

@@ -4,10 +4,18 @@ from ckeditor.fields import RichTextField
 
 
 class Course(models.Model):
+    DIFFICULTY_CHOICES = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+    ]
+    
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     excerpt = models.TextField(blank=True)
     published = models.BooleanField(default=False)
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='beginner')
+    duration_hours = models.PositiveIntegerField(default=1, help_text='Course duration in hours')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

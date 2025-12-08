@@ -30,6 +30,20 @@
       <h3 class="font-semibold mb-2 text-mb-muted">Create course</h3>
       <input v-model="newCourse.title" class="input mb-2" placeholder="Title" />
       <WysiwygEditor v-model="newCourse.excerpt" />
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+          <label class="text-sm text-mb-muted">Difficulty</label>
+          <select v-model="newCourse.difficulty" class="input">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-mb-muted">Duration (hours)</label>
+          <input v-model.number="newCourse.duration_hours" type="number" min="1" class="input" />
+        </div>
+      </div>
       <div class="flex gap-2">
         <button @click="createCourse" class="btn btn-primary">Create</button>
         <button @click="cancelCreate" class="btn btn-ghost">Cancel</button>
@@ -46,7 +60,11 @@
           <div class="mt-1">
             <div class="font-semibold text-lg text-mb-muted">{{ c.title }} <span class="text-xs text-mb-muted">(#{{ c.id }})</span></div>
             <div class="text-sm text-mb-muted mt-1 line-clamp-3" v-html="c.excerpt"></div>
-            <div class="text-xs text-mb-muted mt-2">Enrollments: {{ enrollCounts[c.id] ?? 0 }}</div>
+            <div class="text-xs text-mb-muted mt-2">
+              Enrollments: {{ enrollCounts[c.id] ?? 0 }} | 
+              Difficulty: {{ c.difficulty || 'beginner' }} | 
+              Duration: {{ c.duration_hours || 1 }} hours
+            </div>
           </div>
           <div class="flex flex-col items-end gap-2">
             <div class="flex gap-2">
@@ -61,6 +79,20 @@
         <div v-if="editingId === c.id" class="mt-4">
           <input v-model="editForm.title" class="input mb-2" />
           <WysiwygEditor v-model="editForm.excerpt" />
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <label class="text-sm text-mb-muted">Difficulty</label>
+              <select v-model="editForm.difficulty" class="input">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm text-mb-muted">Duration (hours)</label>
+              <input v-model.number="editForm.duration_hours" type="number" min="1" class="input" />
+            </div>
+          </div>
           <div class="flex gap-2 items-center">
             <label class="text-sm mr-2">Published</label>
             <input type="checkbox" v-model="editForm.published" />
@@ -178,11 +210,11 @@ const enrollCounts = ref({})
 const notes = ref([])
 
 const creating = ref(false)
-const newCourse = ref({ title: '', excerpt: '' })
+const newCourse = ref({ title: '', excerpt: '', difficulty: 'beginner', duration_hours: 1 })
 const createError = ref('')
 
 const editingId = ref(null)
-const editForm = ref({ title: '', excerpt: '', published: false })
+const editForm = ref({ title: '', excerpt: '', published: false, difficulty: 'beginner', duration_hours: 1 })
 const editError = ref('')
 
 // lesson management
@@ -243,13 +275,18 @@ async function fetchNotes() {
 
 function refresh() { fetchCourses() }
 
-function cancelCreate() { creating.value = false; newCourse.value = { title: '', excerpt: '' }; createError.value = '' }
+function cancelCreate() { creating.value = false; newCourse.value = { title: '', excerpt: '', difficulty: 'beginner', duration_hours: 1 }; createError.value = '' }
 
 async function createCourse() {
   createError.value = ''
   if (!newCourse.value.title) { createError.value = 'Title required'; return }
   try {
-    const res = await axios.post('/api/courses/', { title: newCourse.value.title, excerpt: newCourse.value.excerpt })
+    const res = await axios.post('/api/courses/', {
+      title: newCourse.value.title,
+      excerpt: newCourse.value.excerpt,
+      difficulty: newCourse.value.difficulty,
+      duration_hours: newCourse.value.duration_hours
+    })
     if (res && (res.status === 201 || res.status === 200)) {
       courses.value.unshift(res.data)
       cancelCreate()
@@ -264,7 +301,13 @@ function toggleEdit(c) {
     editingId.value = null
   } else {
     editingId.value = c.id
-    editForm.value = { title: c.title || '', excerpt: c.excerpt || '', published: !!c.published }
+    editForm.value = {
+      title: c.title || '',
+      excerpt: c.excerpt || '',
+      published: !!c.published,
+      difficulty: c.difficulty || 'beginner',
+      duration_hours: c.duration_hours || 1
+    }
     editError.value = ''
   }
 }
@@ -292,7 +335,7 @@ async function fetchLessons(courseId) {
   try {
     const res = await axios.get(`/api/lessons/?course=${courseId}`)
     lessons.value = Array.isArray(res.data) ? res.data : (res.data && res.data.results) ? res.data.results : []
-    // sort by order to ensure ordering
+    // Sort lessons by order for correct sequence
     lessons.value.sort((a, b) => (a.order || 0) - (b.order || 0))
   } catch (err) {
     lessonError.value = 'Failed to load lessons.'
@@ -377,12 +420,18 @@ async function moveLessonDown(ls) {
   }
 }
 
-function cancelEdit() { editingId.value = null; editForm.value = { title: '', excerpt: '', published: false }; editError.value = '' }
+function cancelEdit() { editingId.value = null; editForm.value = { title: '', excerpt: '', published: false, difficulty: 'beginner', duration_hours: 1 }; editError.value = '' }
 
 async function saveEdit(c) {
   editError.value = ''
   try {
-    const res = await axios.patch(`/api/courses/${c.id}/`, { title: editForm.value.title, excerpt: editForm.value.excerpt, published: editForm.value.published })
+    const res = await axios.patch(`/api/courses/${c.id}/`, {
+      title: editForm.value.title,
+      excerpt: editForm.value.excerpt,
+      published: editForm.value.published,
+      difficulty: editForm.value.difficulty,
+      duration_hours: editForm.value.duration_hours
+    })
     if (res && res.data) {
       const idx = courses.value.findIndex(x => x.id === c.id)
       if (idx !== -1) courses.value.splice(idx, 1, res.data)

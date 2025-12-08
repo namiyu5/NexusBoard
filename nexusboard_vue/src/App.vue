@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col min-h-screen bg-mb-bg text-white font-sans">
+    <!-- Toast Notifications -->
+    <Toast ref="toast" />
+
     <!-- Navbar -->
     <header class="w-full py-4 border-b border-white/6">
       <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
@@ -52,14 +55,11 @@
     </button>
 
     <p class="text-xs text-center text-white/70">
-      Don’t have an account?
+      Don't have an account?
       <button @click="view='register'" class="font-bold text-indigo-300 hover:underline">
         Sign Up for FREE
       </button>
     </p>
-
-    <p v-if="error" class="text-sm text-red-400 text-center">{{ error }}</p>
-    <p v-if="loginSuccess" class="text-sm text-green-400 text-center">{{ loginSuccess }}</p>
   </div>
 </section>
 <section v-if="view==='register'" class="w-full max-w-md">
@@ -94,9 +94,6 @@
         Sign in
       </button>
     </p>
-
-    <p v-if="regError" class="text-sm text-red-400 text-center">{{ regError }}</p>
-    <p v-if="regSuccess" class="text-sm text-green-400 text-center">{{ regSuccess }}</p>
   </div>
 </section>
 
@@ -300,23 +297,69 @@
     <div class="flex flex-col gap-3">
       <input v-model="newNoteTitle" type="text"
              placeholder="Note title"
-             class="input" />
+             class="input"
+             aria-label="Note title" />
       <textarea v-model="newNoteContent"
                 placeholder="Write your note here..."
-                class="input h-32"></textarea>
+                class="input h-32"
+                aria-label="Note content"></textarea>
       <button @click="createNote"
-              class="btn w-full">
+              class="btn w-full"
+              aria-label="Save note">
         Save Note
       </button>
-      <p v-if="noteError" class="text-sm text-red-400 text-center">{{ noteError }}</p>
     </div>
   </div>
 
   <!-- Notes List -->
-  <ul class="space-y-4">
+  <div v-if="notes.length === 0" class="text-center text-white/60 py-8">
+    <p>No notes yet. Create your first note above!</p>
+  </div>
+  <ul v-else class="space-y-4">
     <li v-for="note in notes" :key="note.id" class="card">
-      <h3 class="text-lg font-semibold">{{ note.title }}</h3>
-      <p class="text-sm text-white/70">{{ note.content }}</p>
+      <div v-if="editingNoteId !== note.id" class="flex justify-between items-start">
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold">{{ note.title }}</h3>
+          <p class="text-sm text-white/70 mt-2">{{ note.content }}</p>
+          <p class="text-xs text-white/50 mt-3">
+            Created: {{ new Date(note.created_at).toLocaleDateString() }}
+          </p>
+        </div>
+        <div class="flex gap-2 ml-4">
+          <button @click="startEditNote(note)"
+                  class="px-3 py-1 rounded bg-blue-500/30 text-blue-300 text-sm hover:bg-blue-500/50 transition"
+                  aria-label="Edit note">
+            Edit
+          </button>
+          <button @click="deleteNote(note.id)"
+                  class="px-3 py-1 rounded bg-red-500/30 text-red-300 text-sm hover:bg-red-500/50 transition"
+                  aria-label="Delete note">
+            Delete
+          </button>
+        </div>
+      </div>
+      <div v-else class="flex flex-col gap-3">
+        <input v-model="editingNote.title" type="text"
+               placeholder="Note title"
+               class="input"
+               aria-label="Edit note title" />
+        <textarea v-model="editingNote.content"
+                  placeholder="Note content"
+                  class="input h-32"
+                  aria-label="Edit note content"></textarea>
+        <div class="flex gap-2">
+          <button @click="saveEditNote(note.id)"
+                  class="btn flex-1"
+                  aria-label="Save changes">
+            Save Changes
+          </button>
+          <button @click="cancelEditNote"
+                  class="px-4 py-2 rounded-md bg-gray-500 text-white font-semibold hover:bg-gray-600 transition"
+                  aria-label="Cancel editing">
+            Cancel
+          </button>
+        </div>
+      </div>
     </li>
   </ul>
 </section>
@@ -390,9 +433,10 @@ import { setAuthTokens, clearAuth, verifyAuth } from './api.js'
 import logo from './assets/favicon.ico'
 import CourseDetail from './components/CourseDetail.vue'
 import AdminDashboard from './components/AdminDashboard.vue'
+import Toast from './components/Toast.vue'
 
 const view = ref('home')
-// `username` is used both for login input and display; initialize from localStorage when present
+const toast = ref(null)
 const username = ref(localStorage.getItem('username') || '')
 const courses = ref([])
 const notes = ref([])
@@ -409,15 +453,12 @@ function refreshAuthState() {
 
 const featuredCourse = computed(() => (courses.value && courses.value.length) ? courses.value[0] : { id: null, title: '', description: '', duration: '' })
 
-// Use Vite env when available; otherwise default to a relative path
-// - In dev: set `VITE_API_BASE` to the Django backend (e.g. http://127.0.0.1:8000)
-// - In production (served from Django/Heroku): leave unset so API calls are relative to current origin
-const API_BASE = import.meta.env.VITE_API_BASE ?? ''
+// API base URL — update VITE_API_BASE in .env.local if needed for development
+const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 let pollHandle = null
 const POLL_INTERVAL_MS = 8000
 
-// handlers for child requests to show inline auth views — module scope so removal works
 function onShowLogin() { if (!isLoggedIn.value) view.value = 'login' }
 function onShowRegister() { if (!isLoggedIn.value) view.value = 'register' }
 
@@ -425,10 +466,9 @@ async function fetchData() {
   try {
     const [courseRes, notesRes] = await Promise.all([
       axios.get(`${API_BASE}/api/courses/`),
-      // notes API may not exist yet on the backend; handle failure gracefully
       axios.get(`${API_BASE}/api/notes/`).catch(() => ({ data: [] })),
     ])
-    // DRF may return paginated responses ({ results: [...] }) or a plain array
+    // Handle both paginated DRF responses and plain arrays
     const courseData = Array.isArray(courseRes.data) ? courseRes.data : (courseRes.data && courseRes.data.results) ? courseRes.data.results : []
     const notesData = Array.isArray(notesRes.data) ? notesRes.data : (notesRes.data && notesRes.data.results) ? notesRes.data.results : []
     courses.value = courseData
@@ -439,7 +479,7 @@ async function fetchData() {
 }
 
 async function loadEnrollments() {
-  // populate enrolledCourses from server-side enrollments
+  // Load user's enrolled courses from server
   enrolledCourses.value = []
   if (!isLoggedIn.value) return
   try {
@@ -455,7 +495,7 @@ async function loadEnrollments() {
 }
 
 onMounted(() => {
-  // initial fetch
+  // Load initial data
   fetchData()
   // verify auth tokens and refresh if needed so UI shows correct login state
   verifyAuth().then(ok => {
@@ -519,23 +559,78 @@ function openCourse(id) {
   currentCourseId.value = id
   view.value = 'course'
 }
-
 const newNoteTitle = ref('')
 const newNoteContent = ref('')
-const noteError = ref('')
+const editingNoteId = ref(null)
+const editingNote = ref({ title: '', content: '' })
 
 // login/register form state used by the inline App.vue forms
 const password = ref('')
-const error = ref('')
-const loginSuccess = ref('')
 const regUsername = ref('')
 const regEmail = ref('')
 const regPassword = ref('')
-const regError = ref('')
-const regSuccess = ref('')
+
+function startEditNote(note) {
+  editingNoteId.value = note.id
+  editingNote.value = {
+    title: note.title,
+    content: note.content,
+  }
+}
+
+function cancelEditNote() {
+  editingNoteId.value = null
+  editingNote.value = { title: '', content: '' }
+}
+
+async function saveEditNote(noteId) {
+  if (!editingNote.value.title || !editingNote.value.content) {
+    toast.value?.showToast('Please provide both a title and content.', 'error')
+    return
+  }
+
+  try {
+    const res = await axios.put(`/api/notes/${noteId}/`, {
+      title: editingNote.value.title,
+      content: editingNote.value.content,
+    })
+    
+    if (res.status === 200) {
+      const noteIndex = notes.value.findIndex(n => n.id === noteId)
+      if (noteIndex !== -1) {
+        notes.value[noteIndex] = res.data
+      }
+      editingNoteId.value = null
+      editingNote.value = { title: '', content: '' }
+      toast.value?.showToast('Note updated successfully!', 'success', 2000)
+    } else {
+      toast.value?.showToast('Failed to update note.', 'error')
+    }
+  } catch (err) {
+    toast.value?.showToast(err?.response?.data?.detail || 'Error updating note.', 'error')
+  }
+}
+
+async function deleteNote(noteId) {
+  if (!confirm('Are you sure you want to delete this note?')) {
+    return
+  }
+
+  try {
+    const res = await axios.delete(`/api/notes/${noteId}/`)
+    
+    if (res.status === 204 || res.status === 200) {
+      notes.value = notes.value.filter(n => n.id !== noteId)
+      toast.value?.showToast('Note deleted successfully!', 'success', 2000)
+    } else {
+      toast.value?.showToast('Failed to delete note.', 'error')
+    }
+  } catch (err) {
+    toast.value?.showToast(err?.response?.data?.detail || 'Error deleting note.', 'error')
+  }
+}
 
 async function submitLogin() {
-  error.value = ''
   try {
     const res = await axios.post('/api/token/', {
       username: username.value,
@@ -543,25 +638,21 @@ async function submitLogin() {
     })
     if (res && res.data && res.data.access) {
       setAuthTokens(res.data.access, res.data.refresh)
-      // persist username and update UI state
       localStorage.setItem('username', username.value)
       refreshAuthState()
-      // show confirmation and redirect home
-      loginSuccess.value = 'Signed in successfully.'
+      toast.value?.showToast('Signed in successfully!', 'success', 2000)
       setTimeout(() => {
-        loginSuccess.value = ''
         view.value = 'home'
-      }, 700)
+      }, 2000)
     } else {
-      error.value = 'Unexpected server response'
+      toast.value?.showToast('Unexpected server response', 'error')
     }
   } catch (err) {
-    error.value = err?.response?.data?.detail || 'Invalid credentials'
+    toast.value?.showToast(err?.response?.data?.detail || 'Invalid credentials', 'error')
   }
 }
 
 async function submitRegister() {
-  regError.value = ''
   try {
     const res = await axios.post(`${API_BASE}/api/auth/signup/`, {
       username: regUsername.value,
@@ -569,25 +660,22 @@ async function submitRegister() {
       password: regPassword.value,
     })
     if (res && res.status === 201) {
-      // registration successful — show success and send user to login
-      regSuccess.value = 'Account created. Please sign in.'
+      toast.value?.showToast('Account created. Please sign in.', 'success', 2000)
       username.value = regUsername.value
       setTimeout(() => {
-        regSuccess.value = ''
         view.value = 'login'
-      }, 900)
+      }, 2000)
     } else {
-      regError.value = 'Registration failed'
+      toast.value?.showToast('Registration failed', 'error')
     }
   } catch (err) {
-    regError.value = err?.response?.data?.detail || 'Error during registration'
+    toast.value?.showToast(err?.response?.data?.detail || 'Error during registration', 'error')
   }
 }
 
 async function createNote() {
-  noteError.value = ''
   if (!newNoteTitle.value || !newNoteContent.value) {
-    noteError.value = 'Please provide both a title and content.'
+    toast.value?.showToast('Please provide both a title and content.', 'error')
     return
   }
   try {
@@ -596,14 +684,15 @@ async function createNote() {
       content: newNoteContent.value,
     })
     if (res.status === 201) {
-      notes.value.push(res.data) // add new note to list
+      notes.value.push(res.data)
       newNoteTitle.value = ''
       newNoteContent.value = ''
+      toast.value?.showToast('Note created successfully!', 'success', 2000)
     } else {
-      noteError.value = 'Failed to save note.'
+      toast.value?.showToast('Failed to save note.', 'error')
     }
   } catch (err) {
-    noteError.value = err?.response?.data?.detail || 'Error saving note.'
+    toast.value?.showToast(err?.response?.data?.detail || 'Error saving note.', 'error')
   }
 }
 
@@ -667,38 +756,26 @@ function goToRegister() {
 .nav-btn {
   @apply text-sm text-white/80 hover:text-white transition;
 }
+
 .card {
   @apply bg-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-lg hover:shadow-xl transition;
 }
+
 .btn {
-  @apply px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300;
+  @apply px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300 transition;
 }
+
+.btn-lg {
+  @apply px-6 py-3 rounded-lg font-bold shadow-md hover:opacity-90 transition;
+}
+
 .cta-btn {
   @apply px-6 py-3 rounded-lg font-bold shadow-md transition;
-}
-.input {
-  @apply bg-transparent border border-white/10 p-3 rounded-md outline-none text-lg text-white placeholder:text-white/40;
-}
-.card {
-  @apply bg-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-lg hover:shadow-xl transition;
-}
-.btn {
-  @apply px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300 transition;
-}
-.card {
-  @apply bg-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-lg hover:shadow-xl transition;
-}
-.btn {
-  @apply px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300 transition;
 }
 
 .input {
   @apply bg-[rgba(255,255,255,0.05)] border border-white/10 p-3 rounded-md outline-none 
          text-lg text-white placeholder:text-white/40 focus:ring-2 focus:ring-indigo-400 transition;
-}
-
-.btn {
-  @apply px-6 py-3 rounded-lg font-bold shadow-md hover:opacity-90 transition;
 }
 
 

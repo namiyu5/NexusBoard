@@ -140,13 +140,12 @@ def admin_users(request, pk=None):
         ]
         return Response(data)
 
-    # PATCH with pk
     if request.method == 'PATCH' and pk:
         try:
             u = User.objects.get(pk=pk)
         except User.DoesNotExist:
             return Response({'detail': 'not found'}, status=status.HTTP_404_NOT_FOUND)
-        # allow toggling is_staff and is_active only
+        # Only admins can toggle staff and active status
         is_staff = request.data.get('is_staff')
         is_active = request.data.get('is_active')
         changed = False

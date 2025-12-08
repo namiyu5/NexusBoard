@@ -195,7 +195,6 @@ const editNoteTitle = ref({})
 const editNoteContent = ref({})
 const editNoteIsPublic = ref({})
 
-// auth change handler (module scope so it can be removed cleanly)
 function onAuthChange() {
   isLoggedIn.value = !!localStorage.getItem('access_token')
 }
@@ -207,7 +206,7 @@ const previewMode = ref(false)
 function selectLesson(lesson) {
   showLessons.value = true
   selectedLesson.value = lesson
-  // ensure notes loaded
+  // Load notes for the selected lesson
   loadNotes(lesson.id)
 }
 
@@ -275,14 +274,14 @@ onMounted(async () => {
   try {
     const res = await axios.get(`/api/courses/${id}/`)
     course.value = res.data
-    // If API returns nested lessons, use them; otherwise fetch lessons list filtered by course
+    // Load lessons: use nested data if available, otherwise fetch separately
     if (course.value.lessons && Array.isArray(course.value.lessons)) {
       lessons.value = course.value.lessons
     } else {
       const lres = await axios.get(`/api/lessons/?course=${id}`)
       lessons.value = Array.isArray(lres.data) ? lres.data : (lres.data.results || [])
     }
-    // determine if current user is enrolled in this course
+    // Check enrollment status
     try {
       const meRes = await axios.get('/api/me/').catch(() => null)
       const me = meRes && meRes.data ? meRes.data : null
@@ -295,16 +294,16 @@ onMounted(async () => {
         }
       }
     } catch (e) {
-      // ignore
+      // ignore enrollment check errors
     }
-    // don't auto-select a lesson; only reveal lessons when user starts learning
+    // Only reveal lessons when user starts learning
   } catch (err) {
     error.value = 'Failed to load course.'
     console.error(err)
   } finally {
     loading.value = false
   }
-  // load notes for each lesson
+  // Load notes for each lesson
   for (const lesson of lessons.value) {
     loadNotes(lesson.id)
     // initialize note input containers

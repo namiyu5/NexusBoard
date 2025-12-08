@@ -37,7 +37,6 @@ onMounted(async () => {
       const data = editor.getData()
       emit('update:modelValue', data)
     })
-    // Ensure the editable element uses the dark theme (fixes cases where CSS isn't applied)
     try {
       const editableEl = editor.ui && typeof editor.ui.getEditableElement === 'function'
         ? editor.ui.getEditableElement()

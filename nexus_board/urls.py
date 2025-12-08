@@ -24,37 +24,22 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    # Classic Django admin is available as a legacy option
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('djoser.urls')),
     path('api/v1/auth/', include('djoser.urls.jwt')),
-    path(
-        'ckeditor/', include('ckeditor_uploader.urls')
-    ),
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='api_login'),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
+    path('api/auth/login/', TokenObtainPairView.as_view(),
+         name='api_login'),
     path('api/auth/signup/', signup, name='api_signup'),
     path('', TemplateView.as_view(template_name='nexus_board/index.html')),
-    # path('', vue_app, name='vue_app'),
-    path(
-        'api/token/',
-        TokenObtainPairView.as_view(),
-        name='token_obtain_pair',
-    ),
-    path(
-        'api/token/refresh/',
-        TokenRefreshView.as_view(),
-        name='token_refresh',
-    ),
-    # Courses and lessons API
+    path('api/token/', TokenObtainPairView.as_view(),
+         name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(),
+         name='token_refresh'),
     path('api/', include('courses.urls')),
-    # current authenticated user info for SPA
     path('api/me/', current_user, name='api_me'),
-    # Admin SPA API endpoints
     path('api/admin/stats/', admin_stats, name='api_admin_stats'),
     path('api/admin/users/', admin_users, name='api_admin_users'),
-    path(
-        'api/admin/users/<int:pk>/',
-        admin_users,
-        name='api_admin_user_detail',
-    ),
+    path('api/admin/users/<int:pk>/', admin_users,
+         name='api_admin_user_detail'),
 ]
