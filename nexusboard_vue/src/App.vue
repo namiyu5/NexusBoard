@@ -399,10 +399,7 @@
            placeholder="Note title (e.g., 'Key Concepts - Module 1')"
            class="input mb-3"
            aria-label="Note title" />
-    <textarea v-model="newNoteContent"
-              placeholder="Write your study notes here... Use this for important concepts, summaries, or key takeaways from the course"
-              class="input h-32 mb-3"
-              aria-label="Note content"></textarea>
+    <WysiwygEditor v-model="newNoteContent" />
     <div class="flex gap-2">
       <button @click="createNote"
               class="btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex-1"
@@ -453,7 +450,7 @@
             </div>
           </div>
         </div>
-        <p class="text-sm text-white/70 mb-4 line-clamp-3">{{ note.content }}</p>
+        <div class="text-sm text-white/70 mb-4 line-clamp-3" v-html="note.content"></div>
         <div class="flex gap-2">
           <button @click="startEditNote(note)"
                   class="flex-1 px-3 py-1 rounded bg-blue-500/30 text-blue-300 text-sm hover:bg-blue-500/50 transition"
@@ -474,10 +471,7 @@
                placeholder="Note title"
                class="input mb-2"
                aria-label="Edit note title" />
-        <textarea v-model="editingNote.content"
-                  placeholder="Note content"
-                  class="input h-32 mb-3"
-                  aria-label="Edit note content"></textarea>
+        <WysiwygEditor v-model="editingNote.content" />
         <label class="flex items-center gap-2 mb-3 px-3 py-1 rounded bg-white/10 w-fit">
           <input type="checkbox" v-model="editingNote.is_public" class="rounded" />
           <span class="text-sm text-white/70">Public</span>
@@ -569,6 +563,7 @@ import logo from './assets/favicon.ico'
 import CourseDetail from './components/CourseDetail.vue'
 import AdminDashboard from './components/AdminDashboard.vue'
 import Toast from './components/Toast.vue'
+import WysiwygEditor from './components/WysiwygEditor.vue'
 
 const view = ref('home')
 const toast = ref(null)
