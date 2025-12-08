@@ -6,7 +6,7 @@
     <!-- Navbar -->
     <header class="w-full py-4 border-b border-white/6">
       <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
-              <div class="text-2xl font-bold text-mb-muted">NexusBoard<img :src="logo" alt="NexusBoard Logo" class="inline-block ml-2 w-8 h-8"></div>
+              <div class="text-2xl font-bold text-mb-muted">NexusBoard<img :src="logoUrl" alt="NexusBoard Logo" class="inline-block ml-2 w-8 h-8"></div>
               <nav class="space-x-6">
           <button @click="view='home'" class="nav-btn text-mb-muted hover:text-white">Home</button>
           <button @click="view='courses'" class="nav-btn text-mb-muted hover:text-white">Courses</button>
@@ -174,7 +174,7 @@
                       </div>
                       <div class="text-sm">
                         <div class="font-semibold text-white truncate max-w-xs">{{ note.title }}</div>
-                        <div class="text-xs text-white/60 truncate max-w-xs">{{ note.content }}</div>
+                        <div class="text-xs text-white/60 line-clamp-2 max-w-xs" v-html="processEmbeds(note.content)"></div>
                       </div>
                     </li>
                     <li v-if="!notes.length" class="text-xs text-white/60">No notes yet — be the first to share!</li>
@@ -399,6 +399,14 @@
            placeholder="Note title (e.g., 'Key Concepts - Module 1')"
            class="input mb-3"
            aria-label="Note title" />
+    <select v-model="selectedLessonId"
+            class="input mb-3"
+            aria-label="Select lesson for this note">
+      <option disabled value="">Select a lesson to attach this note</option>
+      <option v-for="lesson in lessonOptions" :key="lesson.id" :value="lesson.id">
+        {{ lesson.course }} — {{ lesson.title }}
+      </option>
+    </select>
     <WysiwygEditor v-model="newNoteContent" />
     <div class="flex gap-2">
       <button @click="createNote"
@@ -447,6 +455,7 @@
                 {{ note.is_public ? '🔓 Public' : '🔒 Private' }}
               </span>
               <span class="text-xs text-white/50">{{ new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
+              <span v-if="lessonTitleMap[note.lesson]" class="text-xs text-white/50">· {{ lessonTitleMap[note.lesson] }}</span>
             </div>
           </div>
         </div>
@@ -586,6 +595,15 @@ const featuredCourse = computed(() => (courses.value && courses.value.length) ? 
 // API base URL — update VITE_API_BASE in .env.local if needed for development
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
+// Logo URL with fallback to imported asset
+const logoUrl = computed(() => {
+  // In production (Django), use static path; in dev, use imported asset
+  if (typeof import.meta.env.MODE === 'string' && import.meta.env.MODE === 'production') {
+    return '/static/nexusboard_vue/assets/favicon-Cxjdwhm0.ico'
+  }
+  return logo
+})
+
 let pollHandle = null
 const POLL_INTERVAL_MS = 8000
 
@@ -692,6 +710,7 @@ function openCourse(id) {
 const newNoteTitle = ref('')
 const newNoteContent = ref('')
 const newNoteIsPublic = ref(false)
+const selectedLessonId = ref('')
 const notesFilter = ref('all')
 const editingNoteId = ref(null)
 const editingNote = ref({ title: '', content: '', is_public: false })
@@ -721,6 +740,25 @@ const filteredCourses = computed(() => {
   }
   
   return filtered
+})
+
+const lessonOptions = computed(() => {
+  const opts = []
+  for (const course of courses.value || []) {
+    const lessons = course.lessons || []
+    for (const lesson of lessons) {
+      opts.push({ id: lesson.id, title: lesson.title, course: course.title })
+    }
+  }
+  return opts
+})
+
+const lessonTitleMap = computed(() => {
+  const map = {}
+  for (const opt of lessonOptions.value) {
+    map[opt.id] = `${opt.course} — ${opt.title}`
+  }
+  return map
 })
 
 const password = ref('')
@@ -834,12 +872,18 @@ async function submitRegister() {
 }
 
 async function createNote() {
-  if (!newNoteTitle.value || !newNoteContent.value) {
-    toast.value?.showToast('Please provide both a title and content.', 'error')
+  if (!newNoteContent.value) {
+    toast.value?.showToast('Please provide content.', 'error')
+    return
+  }
+  const lessonId = selectedLessonId.value || lessonOptions.value[0]?.id
+  if (!lessonId) {
+    toast.value?.showToast('Please select a lesson first.', 'error')
     return
   }
   try {
     const res = await axios.post('/api/notes/', {
+      lesson: lessonId,
       title: newNoteTitle.value,
       content: newNoteContent.value,
       is_public: newNoteIsPublic.value,
@@ -849,6 +893,7 @@ async function createNote() {
       newNoteTitle.value = ''
       newNoteContent.value = ''
       newNoteIsPublic.value = false
+      selectedLessonId.value = ''
       toast.value?.showToast('Note created successfully!', 'success', 2000)
     } else {
       toast.value?.showToast('Failed to save note.', 'error')
@@ -910,6 +955,23 @@ function goToLogin() {
 function goToRegister() { 
   if (isLoggedIn.value) { view.value = 'home'; return }
   view.value = 'register' 
+}
+
+function processEmbeds(html) {
+  if (!html) return ''
+  try {
+    return html.replace(/<oembed[^>]*url=["']([^"']+)["'][^>]*>(?:<\/oembed>)?/gi, (m, url) => {
+      let embedSrc = url
+      if (/youtube\.com\/watch/.test(url) || /youtu\.be\//.test(url)) {
+        const ytMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/)
+        const vid = ytMatch ? ytMatch[1] : null
+        if (vid) embedSrc = `https://www.youtube.com/embed/${vid}`
+      }
+      return `<div class="media-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;"><iframe src="${embedSrc}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"></iframe></div>`
+    })
+  } catch (e) {
+    return html
+  }
 }
 
 </script>

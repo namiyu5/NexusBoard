@@ -198,7 +198,7 @@
             <!-- Video Player -->
             <div v-if="selectedLesson.video_url" class="mb-6 bg-black rounded-xl overflow-hidden shadow-2xl">
               <div class="relative" style="padding-bottom: 56.25%;">
-                <iframe :src="selectedLesson.video_url" 
+                <iframe :src="getEmbedUrl(selectedLesson.video_url)" 
                         class="absolute inset-0 w-full h-full" 
                         frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -249,6 +249,10 @@
                            placeholder="Note title"
                            class="input mb-3" />
                     <WysiwygEditor v-model="editNoteContent[note.id]" />
+                    <label class="flex items-center gap-2 text-sm text-white/70 mt-3 bg-white/5 px-3 py-2 rounded">
+                      <input type="checkbox" v-model="editNoteIsPublic[note.id]" class="rounded" />
+                      <span>Make this note public</span>
+                    </label>
                     <div class="flex gap-2 mt-3">
                       <button @click="saveEdit(note)" class="btn bg-green-500 text-white flex-1">
                         ✓ Save
@@ -586,6 +590,7 @@ function cancelEdit(note) {
   editingNoteId.value = null
   editNoteTitle.value[note.id] = ''
   editNoteContent.value[note.id] = ''
+  editNoteIsPublic.value[note.id] = false
   noteErrors.value[note.id] = ''
 }
 
@@ -644,6 +649,28 @@ function goToLogin() {
 
 function goToRegister() {
   try { window.dispatchEvent(new Event('showRegister')) } catch (e) { /* ignore */ }
+}
+
+function getEmbedUrl(url) {
+  if (!url) return ''
+  
+  // If already an embed URL, return as-is
+  if (url.includes('/embed/')) return url
+  
+  // Convert YouTube watch URLs to embed format
+  if (url.includes('youtube.com/watch')) {
+    const match = url.match(/[?&]v=([A-Za-z0-9_-]{11})/)
+    if (match) return `https://www.youtube.com/embed/${match[1]}`
+  }
+  
+  // Convert youtu.be short URLs to embed format
+  if (url.includes('youtu.be/')) {
+    const match = url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)
+    if (match) return `https://www.youtube.com/embed/${match[1]}`
+  }
+  
+  // Return original URL for other video platforms
+  return url
 }
 
 function processEmbeds(html) {
