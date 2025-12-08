@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG is controlled by environment for safe deployment.
 # Set the environment variable DEBUG=True for local development if needed.
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'nexusboard-f0283087ad26.herokuapp.com',
@@ -151,7 +151,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'nexus_board' / 'staticfiles'
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
