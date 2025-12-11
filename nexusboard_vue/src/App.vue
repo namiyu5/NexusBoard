@@ -4,24 +4,54 @@
     <Toast ref="toast" />
 
     <!-- Navbar -->
-    <header class="w-full py-4 border-b border-white/6">
-      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
-              <div class="text-2xl font-bold text-mb-muted">NexusBoard<img :src="logoUrl" alt="NexusBoard Logo" class="inline-block ml-2 w-8 h-8"></div>
-              <nav class="space-x-6">
-          <button @click="view='home'" class="nav-btn text-mb-muted hover:text-white">Home</button>
-          <button @click="view='courses'" class="nav-btn text-mb-muted hover:text-white">Courses</button>
-          <button @click="view='notes'" class="nav-btn text-mb-muted hover:text-white">Notes</button>
-          <button @click="view='dashboard'" class="nav-btn text-mb-muted hover:text-white">Dashboard</button>
-          <button v-if="isAdmin" @click="view='admin'" class="nav-btn text-mb-muted hover:text-white">Admin</button>
-          <template v-if="isLoggedIn">
-            <span class="text-sm text-mb-muted mr-3">Logged in as {{ usernameDisplay }}</span>
-            <button @click="logout" class="nav-btn text-mb-primary">Logout</button>
-          </template>
-          <template v-else>
-            <button @click="goToLogin" class="nav-btn text-mb-primary">Login</button>
-            <button @click="goToRegister" class="nav-btn text-mb-muted">Register</button>
-          </template>
-        </nav>
+    <header class="w-full py-4 border-b border-white/10 backdrop-blur-md bg-slate-900/50">
+      <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl font-bold bg-gradient-to-r from-yellow-300 to-indigo-400 bg-clip-text text-transparent">
+        NexusBoard
+        </div>
+        <img :src="logoUrl" alt="NexusBoard Logo" class="w-8 h-8 rounded-full" />
+      </div>
+      
+      <nav class="flex items-center gap-8">
+        <button @click="view='home'" :class="['nav-btn', view === 'home' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        Home
+        </button>
+        <button @click="view='courses'" :class="['nav-btn', view === 'courses' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        Courses
+        </button>
+        <button @click="view='notes'" :class="['nav-btn', view === 'notes' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        Notes
+        </button>
+        <button @click="view='dashboard'" :class="['nav-btn', view === 'dashboard' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        Dashboard
+        </button>
+        <button v-if="isAdmin" @click="view='admin'" :class="['nav-btn', view === 'admin' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        Admin
+        </button>
+      </nav>
+
+      <div class="flex items-center gap-4">
+        <template v-if="isLoggedIn">
+        <div class="hidden sm:flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm">
+          {{ usernameDisplay.charAt(0).toUpperCase() }}
+          </div>
+          <span class="text-sm text-white/70">{{ usernameDisplay }}</span>
+        </div>
+        <button @click="logout" class="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 transition">
+          Logout
+        </button>
+        </template>
+        <template v-else>
+        <button @click="goToLogin" class="px-4 py-2 rounded-lg bg-indigo-500/30 text-indigo-300 text-sm font-medium hover:bg-indigo-500/50 transition">
+          Login
+        </button>
+        <button @click="goToRegister" class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-400 to-indigo-500 text-black text-sm font-semibold hover:shadow-lg transition">
+          Sign Up
+        </button>
+        </template>
+      </div>
       </div>
     </header>
 
@@ -103,171 +133,168 @@
         <div class="max-w-6xl mx-auto px-6 py-12 space-y-10 starry-content">
           <!-- Hero -->
           <div class="grid md:grid-cols-2 gap-8 items-center">
-            <div class="space-y-6">
-              <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-mb-highlight font-heading">
-                NexusBoard<br>
-For Learners,<br>
-By Learners
-              </h1>
-              <br>
-              <p class="text-lg text-mb-muted max-w-2xl">
-                Part of <span class="text-mb-highlight font-semibold">The Nexus Project</span> 
-                <br>Connecting communities through learning. 
-                NexusBoard bridges the gaps in education by providing accessible, practical courses and collaborative spaces where 
-                every voice is heard. Together, we're building a constellation of knowledge where no one is left behind.
-              </p>
+        <div class="space-y-6">
+          <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-mb-highlight font-heading bg-gradient-to-r from-teal-400 to-indigo-500 bg-clip-text text-transparent">
+        NexusBoard<br>
+        For Learners,<br>
+        By Learners
+          </h1>
+          <br>
+          <p class="text-lg text-mb-muted max-w-2xl">
+        Part of <span class="text-mb-highlight font-semibold">The Nexus Project</span> 
+        <br>Connecting communities through learning. 
+        NexusBoard bridges the gaps in education by providing accessible, practical courses and collaborative spaces where 
+        every voice is heard. Together, we're building a constellation of knowledge where no one is left behind.
+          </p>
 
-              <div class="flex gap-4 items-center">
-                <button @click="view='courses'" class="cta-btn btn btn-primary">Browse Courses</button>
-                <button @click="view='register'" class="cta-btn btn btn-secondary">Join Free</button>
-                <button @click="view='login'" class="btn-ghost">Sign in</button>
+          <div class="flex gap-4 items-center">
+        <button @click="view='courses'" class="cta-btn btn btn-primary">Browse Courses</button>
+        <button @click="view='register'" class="cta-btn btn btn-secondary">Join Free</button>
+        <button @click="view='login'" class="btn-ghost">Sign in</button>
+          </div>
+
+          <div class="mt-4 flex gap-6 flex-wrap text-sm text-mb-muted">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl font-bold text-mb-muted">{{ courses.length }}</div>
+          <div>
+        <div class="text-xs">Courses</div>
+        <div class="text-xs text-white/60">Community-created</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-2xl font-bold text-mb-muted">{{ notes.length }}</div>
+          <div>
+        <div class="text-xs">Notes</div>
+        <div class="text-xs text-white/60">Shared insights</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-2xl font-bold text-mb-muted">{{ Math.max(1200, enrolledCourses.length * 37) }}</div>
+          <div>
+        <div class="text-xs">Active learners</div>
+        <div class="text-xs text-white/60">Engaged recently</div>
+          </div>
+        </div>
+          </div>
+        </div>
+
+        
+        <div class="bg-blue-400/20 rounded-2xl p-6 shadow-xl border-l-4 border-yellow-300 backdrop-blur-md">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <div>
+          <div class="text-sm text-white/60">Featured course</div>
+          <div class="text-lg font-bold text-white">{{ featuredCourse.title }}</div>
               </div>
-
-              <div class="mt-4 flex gap-6 flex-wrap text-sm text-mb-muted">
-                <div class="flex items-center gap-3">
-                  <div class="text-2xl font-bold text-mb-muted">{{ courses.length }}</div>
-                  <div>
-                    <div class="text-xs">Courses</div>
-                    <div class="text-xs text-white/60">Community-created</div>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                  <div class="text-2xl font-bold text-mb-muted">{{ notes.length }}</div>
-                  <div>
-                    <div class="text-xs">Notes</div>
-                    <div class="text-xs text-white/60">Shared insights</div>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-3">
-                  <div class="text-2xl font-bold text-mb-muted">{{ Math.max(1200, enrolledCourses.length * 37) }}</div>
-                  <div>
-                    <div class="text-xs">Active learners</div>
-                    <div class="text-xs text-white/60">Engaged recently</div>
-                  </div>
-                </div>
-              </div>
+              <div class="text-xs text-white/60">6 weeks</div>
             </div>
 
-            <!-- Visual / Illustration block -->
-            <div class="bg-[linear-gradient(135deg,#0f172a_0%,#04263a_100%)] rounded-2xl p-6 shadow-xl">
-              <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-sm text-white/60">Featured course</div>
-                    <div class="text-lg font-bold text-white">{{ featuredCourse.title }}</div>
-                  </div>
-                  <div class="text-xs text-white/60">6 weeks</div>
-                </div>
+            <p class="text-sm text-white/70">{{ featuredCourse.description }}</p>
 
-                <p class="text-sm text-white/70">{{ featuredCourse.description }}</p>
-
-                <div class="mt-4 grid grid-cols-2 gap-3">
-                  <button @click="openCourse(featuredCourse.id)" class="btn btn-primary">Start Learning</button>
-                  <button @click="enroll(featuredCourse.id)" class="btn btn-secondary">Enroll</button>
-                </div>
-
-                <div class="mt-5">
-                  <div class="text-xs text-white/60 mb-2">Recent notes from the community</div>
-                  <ul class="space-y-2">
-                    <li v-for="note in notes.slice(-3).reverse()" :key="note.id" class="flex items-start gap-3">
-                      <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm">
-                        {{ (note.title && note.title.length) ? note.title.charAt(0).toUpperCase() : 'N' }}
-                      </div>
-                      <div class="text-sm">
-                        <div class="font-semibold text-white truncate max-w-xs">{{ note.title }}</div>
-                        <div class="text-xs text-white/60 line-clamp-2 max-w-xs" v-html="processEmbeds(note.content)"></div>
-                      </div>
-                    </li>
-                    <li v-if="!notes.length" class="text-xs text-white/60">No notes yet — be the first to share!</li>
-                  </ul>
-                </div>
-              </div>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+              <button @click="openCourse(featuredCourse.id)" class="btn btn-primary">Start Learning</button>
+              <button @click="enroll(featuredCourse.id)" class="btn btn-secondary">Enroll</button>
             </div>
+
+            <div class="mt-5">
+              <div class="text-xs text-white/60 mb-2">Recent notes from the community</div>
+              <ul class="space-y-2">
+          <li v-for="note in notes.slice(-3).reverse()" :key="note.id" class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-teal-400 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+              {{ (note.title && note.title.length) ? note.title.charAt(0).toUpperCase() : 'N' }}
+            </div>
+            <div class="text-sm">
+              <div class="font-semibold text-white truncate max-w-xs">{{ note.title }}</div>
+              <div class="text-xs text-white/60 line-clamp-2 max-w-xs" v-html="processEmbeds(note.content)"></div>
+            </div>
+          </li>
+          <li v-if="!notes.length" class="text-xs text-white/60">No notes yet — be the first to share!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
           </div>
 
          
           <div class="space-y-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-2xl font-bold text-white">Featured courses</h2>
-              <div class="text-sm text-white/60">Handpicked for fast learning</div>
-            </div>
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-white">Featured courses</h2>
+          <div class="text-sm text-white/60">Handpicked for fast learning</div>
+        </div>
 
-            <div class="overflow-x-auto pb-2 -mx-6 px-6">
-              <div class="flex gap-4 min-w-max">
-                <article v-for="course in courses" :key="course.id" class="min-w-[280px] bg-gradient-to-tr from-[rgba(255,255,255,0.02)] to-[rgba(255,255,255,0.01)] rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex-1 pr-3">
-                      <h3 class="text-lg font-semibold text-white truncate">{{ course.title }}</h3>
-                      <p class="text-xs text-white/60 mt-2 line-clamp-3">{{ course.description }}</p>
-                      <div class="mt-3 flex items-center gap-3 text-xs text-white/60">
-                        <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.lessons ? course.lessons.length : '—' }} lessons</div>
-                        <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.duration || 'Self-paced' }}</div>
-                        <div class="px-2 py-1 rounded-full text-xs" :class="course.level ? 'bg-white/3' : ''">{{ course.level || 'Level: N/A' }}</div>
-                      </div>
-                    </div>
-                    <div class="flex flex-col items-end gap-3">
-                      <div v-if="enrolledCourses.includes(course.id)" class="text-xs text-green-300 font-semibold">Enrolled</div>
-                      <div class="text-xs text-white/50">{{ course.level || '' }}</div>
-                    </div>
-                  </div>
-                  <div class="mt-4 flex gap-3 items-center">
-                    <button @click="openCourse(course.id)" class="btn btn-ghost text-mb-muted" aria-label="View course {{ course.title }}">View course</button>
-                    <button @click="enroll(course.id)" class="btn btn-primary" :class="{'opacity-60 cursor-not-allowed': enrolledCourses.includes(course.id)}" :disabled="enrolledCourses.includes(course.id)">
-                      {{ enrolledCourses.includes(course.id) ? 'Go to course' : 'Start learning' }}
-                    </button>
-                  </div>
-                </article>
-              </div>
-            </div>
+        <div class="overflow-x-auto pb-2 -mx-6 px-6">
+          <div class="flex gap-4 min-w-max">
+        <article v-for="course in courses" :key="course.id" class="min-w-[280px] bg-gradient-to-tr from-[rgba(255,255,255,0.02)] to-[rgba(255,255,255,0.01)] rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
+          <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 pr-3">
+          <h3 class="text-lg font-semibold text-white truncate">{{ course.title }}</h3>
+          <p class="text-xs text-white/60 mt-2 line-clamp-3">{{ course.description }}</p>
+          <div class="mt-3 flex items-center gap-3 text-xs text-white/60">
+        <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.lessons ? course.lessons.length : '—' }} lessons</div>
+        <div class="px-2 py-1 bg-white/5 rounded-full">{{ course.duration || 'Self-paced' }}</div>
+        <div class="px-2 py-1 rounded-full text-xs" :class="course.level ? 'bg-white/3' : ''">{{ course.level || 'Level: N/A' }}</div>
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-3">
+          <div v-if="enrolledCourses.includes(course.id)" class="text-xs text-green-300 font-semibold">Enrolled</div>
+          <div class="text-xs text-white/50">{{ course.level || '' }}</div>
+        </div>
+          </div>
+          <div class="mt-4 flex gap-3 items-center">
+        <button @click="openCourse(course.id)" class="btn btn-ghost text-mb-muted" aria-label="View course {{ course.title }}">View course</button>
+        <button @click="enroll(course.id)" class="btn btn-primary" :class="{'opacity-60 cursor-not-allowed': enrolledCourses.includes(course.id)}" :disabled="enrolledCourses.includes(course.id)">
+          {{ enrolledCourses.includes(course.id) ? 'Go to course' : 'Start learning' }}
+        </button>
+          </div>
+        </article>
+          </div>
+        </div>
 
-            <!-- Categories -->
-            <div class="flex flex-wrap gap-3">
-              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Web Development</button>
-              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Python</button>
-              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Design</button>
-              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Data Science</button>
-              <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Security</button>
-            </div>
+        <!-- Categories -->
+        <div class="flex flex-wrap gap-3">
+          <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Web Development</button>
+          <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Python</button>
+          <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Design</button>
+          <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Data Science</button>
+          <button @click="view='courses'" class="px-4 py-2 rounded-full bg-white/5 text-sm text-white/90">Security</button>
+        </div>
           </div>
 
           <!-- Social proof & testimonials -->
           <div class="grid md:grid-cols-3 gap-6">
-            <div class="card">
-              <div class="text-sm text-white/60">Why learners love NexusBoard</div>
-              <div class="mt-3 font-semibold text-white">Short, practical lessons — built by the community.</div>
-              <p class="text-xs text-white/60 mt-2">Real projects, quick wins, and helpful peers — join study groups and share notes that stick.</p>
-            </div>
+        <div class="card">
+          <div class="text-sm text-white/60">Why learners love NexusBoard</div>
+          <div class="mt-3 font-semibold text-white">Short, practical lessons — built by the community.</div>
+          <p class="text-xs text-white/60 mt-2">Real projects, quick wins, and helpful peers — join study groups and share notes that stick.</p>
+        </div>
 
-            <div class="card">
-              <div class="text-xs text-white/60">Testimonials</div>
-              <div class="mt-3 space-y-3">
-                <div class="text-sm">
-                  <div class="font-semibold text-white">"Great for building practical skills quickly."</div>
-                  <div class="text-xs text-white/60">— Alex, Frontend dev</div>
-                </div>
-                <div class="text-sm">
-                  <div class="font-semibold text-white">"Notes are concise and super helpful."</div>
-                  <div class="text-xs text-white/60">— Priya, Data scientist</div>
-                </div>
-              </div>
+        <div class="card">
+          <div class="text-xs text-white/60">Testimonials</div>
+          <div class="mt-3 space-y-3">
+            <div class="text-sm">
+          <div class="font-semibold text-white">"Great for building practical skills quickly."</div>
+          <div class="text-xs text-white/60">— Alex, Frontend dev</div>
             </div>
-
-            <div class="card">
-              <div class="text-xs text-white/60">Get started</div>
-              <div class="mt-3 font-semibold text-white">Create your first note or enroll in a course</div>
-              <div class="mt-4 flex gap-3">
-                <button @click="view='notes'" class="btn bg-indigo-500 text-white">Write a note</button>
-                <button @click="view='courses'" class="btn bg-yellow-400 text-indigo-900">Find a course</button>
-              </div>
+            <div class="text-sm">
+          <div class="font-semibold text-white">"Notes are concise and super helpful."</div>
+          <div class="text-xs text-white/60">— Priya, Data scientist</div>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- Courses -->
-    <!-- Courses Page -->
+        <div class="card">
+          <div class="text-xs text-white/60">Get started</div>
+          <div class="mt-3 font-semibold text-white">Create your first note or enroll in a course</div>
+          <div class="mt-4 flex gap-3">
+            <button @click="view='notes'" class="btn bg-indigo-500 text-white">Write a note</button>
+            <button @click="view='courses'" class="btn bg-yellow-400 text-indigo-900">Find a course</button>
+          </div>
+        </div>
+          </div>
+        </div>
+      </section>
 <section v-if="view==='courses'" class="w-full max-w-6xl mx-auto px-6 py-12">
   <!-- Header -->
   <div class="mb-10">
