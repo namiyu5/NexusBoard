@@ -490,7 +490,8 @@
           </div>
         </div>
         <div class="text-sm text-white/70 mb-4 line-clamp-3" v-html="note.content"></div>
-        <div class="flex gap-2">
+        <!-- Only show Edit/Delete buttons if current user is the author or admin -->
+        <div v-if="canEditNote(note)" class="flex gap-2">
           <button @click="startEditNote(note)"
                   class="flex-1 px-3 py-1 rounded bg-blue-500/30 text-blue-300 text-sm hover:bg-blue-500/50 transition"
                   aria-label="Edit note">
@@ -501,6 +502,10 @@
                   aria-label="Delete note">
             🗑️ Delete
           </button>
+        </div>
+        <!-- Show read-only view for notes user cannot edit -->
+        <div v-else class="text-xs text-white/50 px-3 py-2">
+          You can only view this note
         </div>
       </div>
       <div v-else>
@@ -812,10 +817,15 @@ const password = ref('')
 const regUsername = ref('')
 const regEmail = ref('')
 const regPassword = ref('')
-
 // ============================================================================
 // NOTE MANAGEMENT: Create, read, update, delete notes with public/private sharing
 // ============================================================================
+
+// Check if current user can edit/delete a note (must be author or admin)
+function canEditNote(note) {
+  // Only allow edit if user is the author or is admin
+  return note.author === usernameDisplay.value || isAdmin.value
+}
 
 // Enter edit mode for a note: populate form with existing data
 function startEditNote(note) {

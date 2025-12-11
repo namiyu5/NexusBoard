@@ -7,6 +7,7 @@ from .serializers import NoteSerializer, EnrollmentSerializer
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
+    """Allow read access to everyone, write access to admin only."""
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -14,31 +15,37 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
 
 class CourseViewSet(viewsets.ModelViewSet):
+    """Courses are read-only for regular users, editable by admin."""
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAdminOrReadOnly]
 
 
 class LessonViewSet(viewsets.ModelViewSet):
+    """Lessons are read-only for regular users, editable by admin."""
     queryset = Lesson.objects.select_related('course').all()
     serializer_class = LessonSerializer
     permission_classes = [IsAdminOrReadOnly]
 
 
 class NoteViewSet(viewsets.ModelViewSet):
+    """Notes: editable by author or admin. Public notes visible to all."""
     queryset = Note.objects.select_related('lesson').all()
     serializer_class = NoteSerializer
     
     class IsAuthorOrReadOnly(permissions.BasePermission):
+        """Author or admin can edit. Authenticated users can read."""
         def has_permission(self, request, view):
             return request.user and request.user.is_authenticated
 
         def has_object_permission(self, request, view, obj):
+            # Safe methods allowed for authenticated users
             if request.method in permissions.SAFE_METHODS:
                 return True
+            # Admin can always edit/delete
             if request.user and request.user.is_staff:
                 return True
-            # Only the note author can edit their own notes
+            # Only the note author can edit/delete their own notes
             return (
                 getattr(obj, 'author', None)
                 == getattr(request.user, 'username', None)
@@ -47,6 +54,11 @@ class NoteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorOrReadOnly]
 
     def get_queryset(self):
+        """Filter notes based on user permissions.
+        
+        Admin sees all notes.
+        Regular users see: public notes + their own notes.
+        """
         qs = Note.objects.select_related('lesson').all()
         request = self.request
         lesson_id = request.query_params.get('lesson')
@@ -57,7 +69,7 @@ class NoteViewSet(viewsets.ModelViewSet):
         if user and user.is_staff:
             return qs
 
-        # Show only public notes or notes authored by the current user
+        # Show only public notes or notes authored by current user
         username = getattr(user, 'username', None)
         qs = qs.filter(
             djmodels.Q(is_public=True) | djmodels.Q(author=username)
@@ -65,8 +77,10 @@ class NoteViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        # Auto-assign note author from current user
-        username = getattr(self.request.user, 'username', None) or 'Anonymous'
+        """Auto-assign note author from current user when creating."""
+        username = getattr(self.request.user, 'username', None) or (
+            'Anonymous'
+        )
         serializer.save(author=username)
     
 
