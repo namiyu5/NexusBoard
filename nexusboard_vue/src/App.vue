@@ -3,30 +3,50 @@
     <!-- Toast Notifications -->
     <Toast ref="toast" />
 
+    <!-- Skip to main content link (for keyboard navigation and screen readers) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:bg-mb-primary focus:text-black focus:p-2 focus:z-50">
+      Skip to main content
+    </a>
+
     <!-- Navbar -->
-    <header class="w-full py-4 border-b border-white/10 backdrop-blur-md bg-slate-900/50">
+    <header class="w-full py-4 border-b border-white/10 backdrop-blur-md bg-slate-900/50" role="banner">
       <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="text-2xl font-bold bg-gradient-to-r from-yellow-300 to-indigo-400 bg-clip-text text-transparent">
         NexusBoard
         </div>
-        <img :src="logoUrl" alt="NexusBoard Logo" class="w-8 h-8 rounded-full" />
+        <img :src="logoUrl" alt="NexusBoard logo and home link" class="w-8 h-8 rounded-full" />
       </div>
       
-      <nav class="flex items-center gap-8">
-        <button @click="view='home'" :class="['nav-btn', view === 'home' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+      <nav class="flex items-center gap-8" aria-label="Main navigation">
+        <button @click="view='home'" 
+                :aria-current="view === 'home' ? 'page' : undefined"
+                :class="['nav-btn', view === 'home' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']"
+                aria-label="Home page">
         Home
         </button>
-        <button @click="view='courses'" :class="['nav-btn', view === 'courses' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        <button @click="view='courses'" 
+                :aria-current="view === 'courses' ? 'page' : undefined"
+                :class="['nav-btn', view === 'courses' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']"
+                aria-label="Browse courses">
         Courses
         </button>
-        <button @click="view='notes'" :class="['nav-btn', view === 'notes' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        <button @click="view='notes'" 
+                :aria-current="view === 'notes' ? 'page' : undefined"
+                :class="['nav-btn', view === 'notes' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']"
+                aria-label="View your notes">
         Notes
         </button>
-        <button @click="view='dashboard'" :class="['nav-btn', view === 'dashboard' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        <button @click="view='dashboard'" 
+                :aria-current="view === 'dashboard' ? 'page' : undefined"
+                :class="['nav-btn', view === 'dashboard' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']"
+                aria-label="View your dashboard">
         Dashboard
         </button>
-        <button v-if="isAdmin" @click="view='admin'" :class="['nav-btn', view === 'admin' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']">
+        <button v-if="isAdmin" @click="view='admin'" 
+                :aria-current="view === 'admin' ? 'page' : undefined"
+                :class="['nav-btn', view === 'admin' ? 'text-yellow-300 border-b-2 border-yellow-300' : 'text-white/70 hover:text-white']"
+                aria-label="Admin panel">
         Admin
         </button>
       </nav>
@@ -34,20 +54,26 @@
       <div class="flex items-center gap-4">
         <template v-if="isLoggedIn">
         <div class="hidden sm:flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm" :aria-label="`Profile avatar for ${usernameDisplay}`">
           {{ usernameDisplay.charAt(0).toUpperCase() }}
           </div>
           <span class="text-sm text-white/70">{{ usernameDisplay }}</span>
         </div>
-        <button @click="logout" class="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 transition">
+        <button @click="logout" 
+                class="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 transition"
+                aria-label="Logout from your account">
           Logout
         </button>
         </template>
         <template v-else>
-        <button @click="goToLogin" class="px-4 py-2 rounded-lg bg-indigo-500/30 text-indigo-300 text-sm font-medium hover:bg-indigo-500/50 transition">
+        <button @click="goToLogin" 
+                class="px-4 py-2 rounded-lg bg-indigo-500/30 text-indigo-300 text-sm font-medium hover:bg-indigo-500/50 transition"
+                aria-label="Sign in to your account">
           Login
         </button>
-        <button @click="goToRegister" class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-400 to-indigo-500 text-black text-sm font-semibold hover:shadow-lg transition">
+        <button @click="goToRegister" 
+                class="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-400 to-indigo-500 text-black text-sm font-semibold hover:shadow-lg transition"
+                aria-label="Create a new account">
           Sign Up
         </button>
         </template>
@@ -56,7 +82,7 @@
     </header>
 
     <!-- Main content -->
-    <main :class="view==='home' ? 'flex-1 flex flex-col items-center justify-center' : 'flex-1 flex flex-col items-center justify-center px-6 py-12'">
+    <main id="main-content" role="main" :class="view==='home' ? 'flex-1 flex flex-col items-center justify-center' : 'flex-1 flex flex-col items-center justify-center px-6 py-12'">
       <section v-if="view==='login'" class="w-full max-w-md">
   <div class="flex flex-col items-center mb-6">
     <h2 class="font-extrabold text-3xl md:text-4xl text-center text-yellow-300 drop-shadow-lg">
@@ -68,25 +94,34 @@
   </div>
 
   <div class="flex flex-col gap-4">
-    <input v-model="username" type="text"
-           placeholder="Username"
-           class="input" />
-        <input v-model="password" type="password"
-          placeholder="•••••••••••"
-          class="input" />
+    <div class="flex flex-col">
+      <label for="login-username" class="text-sm font-medium text-white/80 mb-1">Username</label>
+      <input id="login-username" v-model="username" type="text"
+             placeholder="Enter your username"
+             class="input"
+             aria-label="Username for login" />
+    </div>
+    <div class="flex flex-col">
+      <label for="login-password" class="text-sm font-medium text-white/80 mb-1">Password</label>
+      <input id="login-password" v-model="password" type="password"
+             placeholder="Enter your password"
+             class="input"
+             aria-label="Password for login" />
+    </div>
 
     <div class="w-full flex justify-end">
-      <a href="#" class="text-xs font-bold text-indigo-300 hover:underline">Forgot password?</a>
+      <a href="#" class="text-xs font-bold text-indigo-300 hover:underline" aria-label="Reset password">Forgot password?</a>
     </div>
 
     <button @click="submitLogin"
-            class="btn w-full bg-gradient-to-r from-teal-400 to-indigo-500 text-black">
+            class="btn w-full bg-gradient-to-r from-teal-400 to-indigo-500 text-black"
+            aria-label="Sign in with your credentials">
       Login
     </button>
 
     <p class="text-xs text-center text-white/70">
       Don't have an account?
-      <button @click="view='register'" class="font-bold text-indigo-300 hover:underline">
+      <button @click="view='register'" class="font-bold text-indigo-300 hover:underline" aria-label="Navigate to sign up page">
         Sign Up for FREE
       </button>
     </p>
@@ -103,24 +138,37 @@
   </div>
 
   <div class="flex flex-col gap-4">
-    <input v-model="regUsername" type="text"
-           placeholder="Username"
-           class="input" />
-    <input v-model="regEmail" type="email"
-           placeholder="you@example.com"
-           class="input" />
-    <input v-model="regPassword" type="password"
-           placeholder="••••••••"
-           class="input" />
+    <div class="flex flex-col">
+      <label for="reg-username" class="text-sm font-medium text-white/80 mb-1">Username</label>
+      <input id="reg-username" v-model="regUsername" type="text"
+             placeholder="Choose your username"
+             class="input"
+             aria-label="Username for new account" />
+    </div>
+    <div class="flex flex-col">
+      <label for="reg-email" class="text-sm font-medium text-white/80 mb-1">Email</label>
+      <input id="reg-email" v-model="regEmail" type="email"
+             placeholder="you@example.com"
+             class="input"
+             aria-label="Email address for new account" />
+    </div>
+    <div class="flex flex-col">
+      <label for="reg-password" class="text-sm font-medium text-white/80 mb-1">Password</label>
+      <input id="reg-password" v-model="regPassword" type="password"
+             placeholder="Create a password"
+             class="input"
+             aria-label="Password for new account" />
+    </div>
 
     <button @click="submitRegister"
-            class="btn w-full bg-gradient-to-r from-green-400 to-indigo-500 text-black">
+            class="btn w-full bg-gradient-to-r from-green-400 to-indigo-500 text-black"
+            aria-label="Create your account">
       Create Account
     </button>
 
     <p class="text-xs text-center text-white/70">
       Already have an account?
-      <button @click="view='login'" class="font-bold text-indigo-300 hover:underline">
+      <button @click="view='login'" class="font-bold text-indigo-300 hover:underline" aria-label="Navigate to sign in page">
         Sign in
       </button>
     </p>
@@ -1071,7 +1119,7 @@ function processEmbeds(html) {
 
 <style scoped>
 .nav-btn {
-  @apply text-sm text-white/80 hover:text-white transition;
+  @apply text-sm text-white/80 hover:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-transparent rounded px-2 py-1;
 }
 
 .card {
@@ -1079,22 +1127,44 @@ function processEmbeds(html) {
 }
 
 .btn {
-  @apply px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300 transition;
+  @apply px-4 py-2 rounded-md bg-teal-400 text-black font-semibold hover:bg-teal-300 transition focus:outline-none focus:ring-2 focus:ring-teal-200 focus:ring-offset-2 focus:ring-offset-mb-bg;
 }
 
 .btn-lg {
-  @apply px-6 py-3 rounded-lg font-bold shadow-md hover:opacity-90 transition;
+  @apply px-6 py-3 rounded-lg font-bold shadow-md hover:opacity-90 transition focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 focus:ring-offset-mb-bg;
 }
 
 .cta-btn {
-  @apply px-6 py-3 rounded-lg font-bold shadow-md transition;
+  @apply px-6 py-3 rounded-lg font-bold shadow-md transition focus:outline-none focus:ring-2 focus:ring-mb-primary focus:ring-offset-2 focus:ring-offset-mb-bg;
 }
 
 .input {
   @apply bg-[rgba(255,255,255,0.05)] border border-white/10 p-3 rounded-md outline-none 
-         text-lg text-white placeholder:text-white/40 focus:ring-2 focus:ring-indigo-400 transition;
+         text-lg text-white placeholder:text-white/40 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition;
 }
 
+/* Accessibility: Screen reader only text for skip links */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
 
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
 
 </style> 
