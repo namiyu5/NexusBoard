@@ -72,6 +72,8 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # CSRF Protection: Enabled for form-based requests. JWT token-based API requests
+    # automatically bypass CSRF since they use Authorization header instead of cookies
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -159,10 +161,18 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
+    # Use JWT (JSON Web Tokens) for API authentication
+    # Tokens are sent in Authorization header: Authorization: Bearer <token>
+    # This is stateless and ideal for single-page applications
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # Fallback for session-based auth (forms, Django admin)
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    # Require authentication for most endpoints (logged-in users only)
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
 }
 
 

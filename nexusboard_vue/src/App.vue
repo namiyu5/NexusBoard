@@ -57,15 +57,19 @@
           <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-semibold text-sm" :aria-label="`Profile avatar for ${usernameDisplay}`">
           {{ usernameDisplay.charAt(0).toUpperCase() }}
           </div>
-          <span class="text-sm text-white/70">{{ usernameDisplay }}</span>
+          <div class="flex flex-col">
+            <span class="text-xs text-white/50">You are logged in as</span>
+            <span class="text-sm text-white/70">{{ usernameDisplay }}</span>
+          </div>
         </div>
         <button @click="logout" 
-                class="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 transition"
-                aria-label="Logout from your account">
+          class="px-4 py-2 rounded-lg bg-red-500/20 text-red-300 text-sm font-medium hover:bg-red-500/30 transition"
+          aria-label="Logout from your account">
           Logout
         </button>
         </template>
         <template v-else>
+          <span class="text-xs text-white/50">You are not logged in</span>
         <button @click="goToLogin" 
                 class="px-4 py-2 rounded-lg bg-indigo-500/30 text-indigo-300 text-sm font-medium hover:bg-indigo-500/50 transition"
                 aria-label="Sign in to your account">

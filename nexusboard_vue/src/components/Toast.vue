@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed top-4 right-4 z-50 pointer-events-none">
+  <div class="fixed top-4 right-4 z-50 pointer-events-none" role="region" aria-live="polite" aria-atomic="true" aria-label="Notifications">
     <transition-group name="toast" tag="div" class="space-y-2">
       <div
         v-for="notification in notifications"
@@ -10,11 +10,13 @@
           notification.type === 'error' ? 'bg-red-500/90 text-white' : '',
           notification.type === 'info' ? 'bg-blue-500/90 text-white' : '',
         ]"
+        role="alert"
+        :aria-label="`${notification.type} notification: ${notification.message}`"
       >
         <div class="flex items-center gap-3">
-          <span v-if="notification.type === 'success'" class="text-xl">✓</span>
-          <span v-else-if="notification.type === 'error'" class="text-xl">✕</span>
-          <span v-else class="text-xl">ℹ</span>
+          <span v-if="notification.type === 'success'" class="text-xl" aria-hidden="true">✓</span>
+          <span v-else-if="notification.type === 'error'" class="text-xl" aria-hidden="true">✕</span>
+          <span v-else class="text-xl" aria-hidden="true">ℹ</span>
           <span>{{ notification.message }}</span>
         </div>
       </div>
