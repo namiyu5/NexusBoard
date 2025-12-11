@@ -605,43 +605,54 @@ import AdminDashboard from './components/AdminDashboard.vue'
 import Toast from './components/Toast.vue'
 import WysiwygEditor from './components/WysiwygEditor.vue'
 
-const view = ref('home')
-const toast = ref(null)
-const username = ref(localStorage.getItem('username') || '')
-const courses = ref([])
-const notes = ref([])
-const enrolledCourses = ref([])
-const isLoggedIn = ref(!!localStorage.getItem('access_token'))
-const isAdmin = ref(false)
-const usernameDisplay = ref(localStorage.getItem('username') || '')
-const currentCourseId = ref(null)
+// ============================================================================
+// STATE MANAGEMENT: Core application state and UI visibility
+// ============================================================================
+const view = ref('home') // Current view: 'home', 'login', 'register', 'courses', 'course', 'notes', 'dashboard', 'admin'
+const toast = ref(null) // Reference to Toast component for showing notifications
+const username = ref(localStorage.getItem('username') || '') // Login form input
+const courses = ref([]) // All available courses loaded from API
+const notes = ref([]) // User's notes for filtering in notes view
+const enrolledCourses = ref([]) // List of course IDs user has enrolled in
+const isLoggedIn = ref(!!localStorage.getItem('access_token')) // Auth state derived from token presence
+const isAdmin = ref(false) // Admin role for showing admin dashboard and controls
+const usernameDisplay = ref(localStorage.getItem('username') || '') // Display name in navbar (cached from login)
+const currentCourseId = ref(null) // Currently viewed course ID
 
 function refreshAuthState() {
+  // Sync local auth state with localStorage (used after login/logout/token refresh)
   isLoggedIn.value = !!localStorage.getItem('access_token')
   usernameDisplay.value = localStorage.getItem('username') || ''
 }
 
+// ============================================================================
+// COMPUTED PROPERTIES: Derived state for view rendering
+// ============================================================================
+
+// Featured course (first course in list) shown on home page hero section
 const featuredCourse = computed(() => (courses.value && courses.value.length) ? courses.value[0] : { id: null, title: '', description: '', duration: '' })
 
-// Hero background image styling
+// Hero section background image with dark overlay for readability
 const heroBackgroundStyle = computed(() => ({
   background: `linear-gradient(180deg, rgba(6,10,20,0.82), rgba(6,10,20,0.9)), url(${heroBg}) center/cover no-repeat`
 }))
 
-// API base URL — update VITE_API_BASE in .env.local if needed for development
+// API base URL configuration — update VITE_API_BASE in .env.local for development
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
-// Logo URL with fallback to imported asset
+// Logo URL with fallback: use static path in production (Django), imported asset in dev
 const logoUrl = computed(() => {
-  // In production (Django), use static path; in dev, use imported asset
   if (typeof import.meta.env.MODE === 'string' && import.meta.env.MODE === 'production') {
     return '/static/nexusboard_vue/assets/favicon-Cxjdwhm0.ico'
   }
   return logo
 })
 
+// ============================================================================
+// POLLING & INITIALIZATION: Auto-refresh data to show admin-created courses
+// ============================================================================
 let pollHandle = null
-const POLL_INTERVAL_MS = 8000
+const POLL_INTERVAL_MS = 8000 // Fetch course updates every 8 seconds
 
 function onShowLogin() { if (!isLoggedIn.value) view.value = 'login' }
 function onShowRegister() { if (!isLoggedIn.value) view.value = 'register' }
@@ -802,6 +813,11 @@ const regUsername = ref('')
 const regEmail = ref('')
 const regPassword = ref('')
 
+// ============================================================================
+// NOTE MANAGEMENT: Create, read, update, delete notes with public/private sharing
+// ============================================================================
+
+// Enter edit mode for a note: populate form with existing data
 function startEditNote(note) {
   editingNoteId.value = note.id
   editingNote.value = {
@@ -811,11 +827,13 @@ function startEditNote(note) {
   }
 }
 
+// Exit edit mode and clear form without saving
 function cancelEditNote() {
   editingNoteId.value = null
   editingNote.value = { title: '', content: '', is_public: false }
 }
 
+// Update existing note on server via PUT /api/notes/{id}/
 async function saveEditNote(noteId) {
   if (!editingNote.value.title || !editingNote.value.content) {
     toast.value?.showToast('Please provide both a title and content.', 'error')
@@ -830,6 +848,7 @@ async function saveEditNote(noteId) {
     })
     
     if (res.status === 200) {
+      // Update note in local array after server confirmation
       const noteIndex = notes.value.findIndex(n => n.id === noteId)
       if (noteIndex !== -1) {
         notes.value[noteIndex] = res.data
@@ -846,6 +865,7 @@ async function saveEditNote(noteId) {
 }
 
 async function deleteNote(noteId) {
+  // Confirm deletion with user before sending DELETE request
   if (!confirm('Are you sure you want to delete this note?')) {
     return
   }
@@ -854,6 +874,7 @@ async function deleteNote(noteId) {
     const res = await axios.delete(`/api/notes/${noteId}/`)
     
     if (res.status === 204 || res.status === 200) {
+      // Remove deleted note from local array
       notes.value = notes.value.filter(n => n.id !== noteId)
       toast.value?.showToast('Note deleted successfully!', 'success', 2000)
     } else {
@@ -864,6 +885,11 @@ async function deleteNote(noteId) {
   }
 }
 
+// ============================================================================
+// AUTHENTICATION: Login, registration, token management, logout
+// ============================================================================
+
+// Submit login form: POST username/password to /api/token/ endpoint
 async function submitLogin() {
   try {
     const res = await axios.post('/api/token/', {
@@ -871,6 +897,7 @@ async function submitLogin() {
       password: password.value,
     })
     if (res && res.data && res.data.access) {
+      // Save tokens to localStorage and update auth state
       setAuthTokens(res.data.access, res.data.refresh)
       localStorage.setItem('username', username.value)
       refreshAuthState()
@@ -886,6 +913,7 @@ async function submitLogin() {
   }
 }
 
+// Submit registration form: POST to /api/auth/signup/ endpoint
 async function submitRegister() {
   try {
     const res = await axios.post(`${API_BASE}/api/auth/signup/`, {
@@ -963,13 +991,15 @@ async function enroll(courseId) {
 
   try {
     const res = await axios.post('/api/enrollments/', { course: courseId })
-    if (!(res && (res.status === 201 || res.status === 200))) {
+    if (res && (res.status === 201 || res.status === 200)) {
+      toast.value?.showToast('Enrolled successfully!', 'success', 2000)
+    } else {
       // server didn't create enrollment; leave optimistic state (user will see server state on refresh)
     }
   } catch (err) {
     // On error (e.g., 401), revert optimistic update and prompt login
     if (err?.response?.status === 401) {
-      // revert optimistic enrollment
+      // Revert optimistic enrollment update if auth failed
       if (addedOptimistically) enrolledCourses.value = enrolledCourses.value.filter(id => id !== courseId)
       view.value = 'login'
       return
@@ -978,31 +1008,48 @@ async function enroll(courseId) {
   }
 }
 
+// ============================================================================
+// SESSION MANAGEMENT: Logout and navigation helpers
+// ============================================================================
+
+// Clear authentication tokens and reset UI to home
 function logout() {
   clearAuth()
   refreshAuthState()
+  toast.value?.showToast('See you next time!', 'success', 1500)
   view.value = 'home'
 }
 
+// Navigate to login view if not already logged in
 function goToLogin() { 
   if (isLoggedIn.value) { view.value = 'home'; return }
   view.value = 'login' 
 }
+
+// Navigate to register view if not already logged in
 function goToRegister() { 
   if (isLoggedIn.value) { view.value = 'home'; return }
   view.value = 'register' 
 }
 
+// ============================================================================
+// VIDEO EMBEDDING: Convert oembed/watch URLs to responsive YouTube iframes
+// ============================================================================
+
+// Process HTML to convert <oembed> tags and YouTube URLs into responsive embed iframes
+// Handles: YouTube watch URLs (youtube.com/watch?v=ID), short URLs (youtu.be/ID), embed URLs
 function processEmbeds(html) {
   if (!html) return ''
   try {
     return html.replace(/<oembed[^>]*url=["']([^"']+)["'][^>]*>(?:<\/oembed>)?/gi, (m, url) => {
       let embedSrc = url
+      // Convert YouTube watch/short URLs to embed format to fix Error 153
       if (/youtube\.com\/watch/.test(url) || /youtu\.be\//.test(url)) {
         const ytMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/)
         const vid = ytMatch ? ytMatch[1] : null
         if (vid) embedSrc = `https://www.youtube.com/embed/${vid}`
       }
+      // Return responsive iframe with 16:9 aspect ratio (padding-bottom: 56.25%)
       return `<div class="media-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;"><iframe src="${embedSrc}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"></iframe></div>`
     })
   } catch (e) {

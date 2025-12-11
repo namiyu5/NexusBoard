@@ -13,55 +13,9 @@
   --card-padding: 1rem;
 }
 
-/* Subtle starry background (used on homepage) */
-.starry-bg {
-  position: relative;
-  background:
-    linear-gradient(180deg, rgba(6, 10, 20, 0.78), rgba(6, 10, 20, 0.9)),
-    url('@/assets/img/Copilot_20251208_154055.png') center/cover no-repeat;
-  overflow: hidden;
-}
-.starry-bg::before,
-.starry-bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.starry-bg::before {
-  background-image:
-    radial-gradient(#ffffff 1px, rgba(255,255,255,0) 1px),
-    radial-gradient(#ffffff 0.8px, rgba(255,255,255,0) 1px);
-  background-size: 72px 72px, 130px 130px;
-  opacity: 0.06;
-  transform: translateZ(0);
-  animation: stars-move 120s linear infinite;
-}
-.starry-bg::after {
-  background-image: radial-gradient(#ffffff 1px, rgba(255,255,255,0) 1px);
-  background-size: 18px 18px;
-  opacity: 0.025;
-  mix-blend-mode: screen;
-  animation: twinkle 6s ease-in-out infinite;
-}
-
-@keyframes stars-move {
-  from { transform: translateY(0); }
-  to { transform: translateY(-240px); }
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 0.02; }
-  50% { opacity: 0.08; }
-}
-
-/* Ensure content sits above the star layers */
-.starry-content { position: relative; z-index: 1; }
 
 
 
-/* Utility helpers for non-Tailwind areas */
 body{
   background-color: var(--mb-bg);
   color: var(--mb-muted);
@@ -90,13 +44,13 @@ body{
   box-shadow: 0 6px 18px rgba(2,6,23,0.6);
 }
 
-/* WYSIWYG content area styling */
+
 .prose-dark p{ color: #dbe8ff }
 
-/* Prefer Poppins for headings and Inter for body (declared in index.html) */
+
 h1,h2,h3,h4,h5{ font-family: Poppins, Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
 
-/* Global UI components */
+
 .btn{
   display:inline-flex;
   align-items:center;

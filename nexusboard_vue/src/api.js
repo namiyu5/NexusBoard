@@ -70,11 +70,7 @@ axios.interceptors.response.use(
 export default axios
 export { setAuthTokens, clearAuth }
 
-/**
- * Verify whether stored tokens are valid. Attempts a protected request and
- * refreshes the access token if needed.
- * Returns `true` when authenticated, `false` otherwise.
- */
+
 async function verifyAuth() {
   const access = localStorage.getItem('access_token')
   if (!access) return false
