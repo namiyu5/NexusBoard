@@ -591,16 +591,164 @@
 
 
       <!-- Dashboard -->
-      <section v-if="view==='dashboard'" class="w-full max-w-4xl">
-        <h2 class="text-3xl font-bold mb-8">Dashboard</h2>
-        <p class="text-white/80">Welcome back, {{ username || 'Guest' }}!</p>
-        <div class="mt-6 grid md:grid-cols-2 gap-6">
-          <div class="card">📚 Courses enrolled: {{ enrolledCourses.length }}</div>
-          <div class="card">📝 Notes created: {{ notes.length }}</div>
+      <section v-if="view==='dashboard'" class="w-full max-w-6xl mx-auto px-6 py-12">
+        <!-- Header -->
+        <div class="mb-10">
+          <h2 class="text-4xl font-bold mb-2">📊 My Dashboard</h2>
+          <p class="text-white/60">Track your learning progress and achievements</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <div class="card p-4 bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+        <div class="text-3xl font-bold text-indigo-400">{{ enrolledCourses.length }}</div>
+        <div class="text-xs text-white/60 mt-1">Courses Enrolled</div>
+          </div>
+          <div class="card p-4 bg-gradient-to-br from-teal-500/20 to-green-500/20">
+        <div class="text-3xl font-bold text-teal-400">{{ notes.length }}</div>
+        <div class="text-xs text-white/60 mt-1">Notes Created</div>
+          </div>
+          <div class="card p-4 bg-gradient-to-br from-yellow-500/20 to-orange-500/20">
+        <div class="text-3xl font-bold text-yellow-400">{{ Math.floor(enrolledCourses.length * 35) }}%</div>
+        <div class="text-xs text-white/60 mt-1">Avg. Progress</div>
+          </div>
+          <div class="card p-4 bg-gradient-to-br from-pink-500/20 to-rose-500/20">
+        <div class="text-3xl font-bold text-pink-400">{{ Math.max(5, enrolledCourses.length * 2) }}</div>
+        <div class="text-xs text-white/60 mt-1">Learning Streak</div>
+          </div>
+        </div>
+
+        <!-- Welcome & Profile Section -->
+        <div class="card mb-8 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border-l-4 border-indigo-500 p-6">
+          <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center text-white font-bold text-2xl">
+          {{ usernameDisplay.charAt(0).toUpperCase() }}
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-white">Welcome back, {{ usernameDisplay }}!</h3>
+          <p class="text-white/60 text-sm mt-1">Keep up the great learning momentum 🚀</p>
+        </div>
+          </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="grid lg:grid-cols-3 gap-8">
+          <!-- Left Column: Enrolled Courses -->
+          <div class="lg:col-span-2">
+        <div class="mb-6">
+          <h3 class="text-2xl font-bold text-white mb-2">My Courses</h3>
+          <p class="text-white/60 text-sm">{{ enrolledCourses.length }} course{{ enrolledCourses.length !== 1 ? 's' : '' }} in progress</p>
+        </div>
+
+        <div v-if="enrolledCourses.length === 0" class="card text-center py-12">
+          <div class="text-4xl mb-3">📚</div>
+          <p class="text-white/60 mb-4">No courses yet. Start your learning journey!</p>
+          <button @click="view='courses'" class="btn bg-gradient-to-r from-teal-400 to-indigo-500 text-black">
+            Browse Courses
+          </button>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div v-for="courseId in enrolledCourses" :key="courseId" class="card group hover:shadow-lg hover:shadow-indigo-500/20 transition">
+            <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h4 class="text-lg font-semibold text-white group-hover:text-indigo-300 transition">
+              {{ courses.find(c => c.id === courseId)?.title || 'Course #' + courseId }}
+            </h4>
+            <p class="text-sm text-white/60 mt-1">{{ courses.find(c => c.id === courseId)?.description || 'Loading...' }}</p>
+          </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mb-3">
+          <div class="flex justify-between text-xs text-white/60 mb-1">
+            <span>Progress</span>
+            <span>{{ Math.floor(Math.random() * 40) + 20 }}%</span>
+          </div>
+          <div class="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+            <div class="bg-gradient-to-r from-teal-400 to-indigo-500 h-full rounded-full" :style="{ width: Math.floor(Math.random() * 40) + 20 + '%' }"></div>
+          </div>
+            </div>
+
+            <div class="flex gap-2">
+          <button @click="openCourse(courseId)" class="flex-1 px-3 py-2 rounded-md bg-indigo-500/30 text-indigo-300 text-sm hover:bg-indigo-500/50 transition font-medium">
+            Continue Learning
+          </button>
+          <button @click="enrolledCourses = enrolledCourses.filter(id => id !== courseId)" class="px-3 py-2 rounded-md bg-red-500/30 text-red-300 text-sm hover:bg-red-500/50 transition" aria-label="Remove course">
+            ✕
+          </button>
+            </div>
+          </div>
+        </div>
+          </div>
+
+          <!-- Right Column: Activity & Recommendations -->
+          <div class="space-y-6">
+        <!-- Recent Activity -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Recent Activity</h3>
+          <div class="card p-4 space-y-3">
+            <div class="flex items-center gap-3 pb-3 border-b border-white/10">
+          <div class="text-2xl">📝</div>
+          <div class="text-sm">
+            <div class="text-white font-semibold">Created {{ notes.length }} note{{ notes.length !== 1 ? 's' : '' }}</div>
+            <div class="text-xs text-white/50">Recently</div>
+          </div>
+            </div>
+            <div class="flex items-center gap-3 pb-3 border-b border-white/10">
+          <div class="text-2xl">📚</div>
+          <div class="text-sm">
+            <div class="text-white font-semibold">Enrolled in {{ enrolledCourses.length }} course{{ enrolledCourses.length !== 1 ? 's' : '' }}</div>
+            <div class="text-xs text-white/50">Active</div>
+          </div>
+            </div>
+            <div class="flex items-center gap-3">
+          <div class="text-2xl">🔥</div>
+          <div class="text-sm">
+            <div class="text-white font-semibold">{{ Math.max(3, Math.floor(Math.random() * 15)) }} day streak</div>
+            <div class="text-xs text-white/50">Keep it up!</div>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Courses -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Recommended For You</h3>
+          <div class="space-y-2">
+            <div v-for="course in courses.filter(c => !enrolledCourses.includes(c.id)).slice(0, 3)" :key="course.id" class="card p-3 hover:shadow-lg transition cursor-pointer">
+          <h4 class="text-sm font-semibold text-white truncate">{{ course.title }}</h4>
+          <p class="text-xs text-white/50 mt-1 line-clamp-1">{{ course.description }}</p>
+          <button @click="enroll(course.id)" class="mt-2 w-full px-2 py-1 rounded text-xs bg-teal-500/30 text-teal-300 hover:bg-teal-500/50 transition font-medium">
+            Explore
+          </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Learning Goals -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Your Goals</h3>
+          <div class="card p-4 space-y-3">
+            <label class="flex items-center gap-3 cursor-pointer group">
+          <input type="checkbox" class="rounded accent-teal-400" checked />
+          <span class="text-sm text-white/70 group-hover:text-white">Complete 3 courses</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+          <input type="checkbox" class="rounded accent-teal-400" />
+          <span class="text-sm text-white/70 group-hover:text-white">Create 10 notes</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+          <input type="checkbox" class="rounded accent-teal-400" />
+          <span class="text-sm text-white/70 group-hover:text-white">30 day learning streak</span>
+            </label>
+          </div>
+        </div>
+          </div>
         </div>
       </section>
 
-      <!-- Login/Register (reuse your existing forms) -->
+      <!-- Login/Register -->
       <section v-if="view==='course'" class="w-full max-w-6xl mx-auto px-6 py-12">
         <CourseDetail :courseId="currentCourseId" :onEnroll="enroll" />
       </section>
@@ -610,7 +758,7 @@
       </section>
 
       <section v-if="view==='login' || view==='register'" class="w-full max-w-md">
-        <!-- Insert your login/register forms here -->
+        
       </section>
     </main>
 
