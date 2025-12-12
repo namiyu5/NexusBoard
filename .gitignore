@@ -9,8 +9,6 @@ cloudinary_python.txt
 blog/fixtures/
 build_vue.bat
 
-# Local virtual environment
-.venv/
+.venv
 
-# Frontend build output
 nexusboard_vue/dist/
