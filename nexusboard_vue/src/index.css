@@ -9,3 +9,26 @@ html, body, #app { height: 100%; }
 /* override Tailwind base colors to use variables where useful */
 body{ background-color: var(--mb-bg); color: var(--mb-muted); }
 
+/* Dark styling for select dropdowns */
+select {
+  background-color: #1a1410 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+select option {
+  background-color: #1a1410 !important;
+  color: #ffffff !important;
+}
+
+select option:hover {
+  background-color: #2a1f18 !important;
+}
+
+select:focus {
+  background-color: #1a1410 !important;
+  color: #ffffff !important;
+  border-color: #6366f1 !important;
+  outline: none;
+}
+

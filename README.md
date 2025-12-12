@@ -215,6 +215,14 @@ Students can format notes professionally without the complexity of external tool
 
 ---
 
+## ⚠️ Known Issue: YouTube Video Embeds
+
+YouTube video embeds may show **"Error 153: Watch video on YouTube"** errors in certain deployment environments due to YouTube's embedding policies and CORS restrictions. This is a known limitation when embedding YouTube videos on third-party domains.
+
+**Workaround**: Users can click the error message to open the video directly on YouTube. The feature works consistently in local development but may have intermittent issues on some hosted platforms. This is not a bug in the application code but a browser/YouTube policy limitation.
+
+---
+
 ## Database & Wireframes
 
 ### Entity Relationship Diagram (ERD)

@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import signup, current_user, admin_stats, admin_users
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -43,3 +45,7 @@ urlpatterns = [
     path('api/admin/users/<int:pk>/', admin_users,
          name='api_admin_user_detail'),
 ]
+
+# Serve static files in development and production with WhiteNoise
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
