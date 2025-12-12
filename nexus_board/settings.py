@@ -29,8 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG is controlled by environment for safe deployment.
-# Set the environment variable DEBUG=True for local development if needed.
+
 DEBUG = False
 
 ALLOWED_HOSTS = [
@@ -72,8 +71,9 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # CSRF Protection: Enabled for form-based requests. JWT token-based API requests
-    # automatically bypass CSRF since they use Authorization header instead of cookies
+    # CSRF Protection: Enabled for form-based requests.
+    # JWT requests bypass CSRF
+    # They use Authorization header instead of cookies
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -104,7 +104,12 @@ WSGI_APPLICATION = 'nexus_board.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-   'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
+   'default': dj_database_url.parse(
+       os.environ.get(
+           "DATABASE_URL",
+           f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+       )
+   )
 }
 
 

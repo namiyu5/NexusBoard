@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
-from .views import vue_app, signup, current_user, admin_stats, admin_users
+from .views import signup, current_user, admin_stats, admin_users
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,

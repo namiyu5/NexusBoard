@@ -61,9 +61,11 @@ def current_user(request):
 def admin_stats(request):
     """Return admin dashboard stats: totals and recent items."""
     if not request.user.is_staff:
-        return Response({'detail': 'admin only'}, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {'detail': 'admin only'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
-    from django.db.models import Count
     from courses.models import Course, Lesson, Enrollment, Note
 
     total_users = request.user.__class__.objects.count()
@@ -85,7 +87,10 @@ def admin_stats(request):
         for e in recent_enrolls_qs
     ]
 
-    recent_notes_qs = Note.objects.select_related('lesson').order_by('-created_at')[:10]
+    recent_notes_qs = (
+        Note.objects.select_related('lesson')
+        .order_by('-created_at')[:10]
+    )
     recent_notes = [
         {
             'id': n.id,
@@ -128,14 +133,22 @@ def admin_stats(request):
 def admin_users(request, pk=None):
     """List users (GET) or update a single user (PATCH via pk)."""
     if not request.user.is_staff:
-        return Response({'detail': 'admin only'}, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {'detail': 'admin only'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     User = request.user.__class__
 
     if request.method == 'GET':
         users = User.objects.order_by('-id')[:200]
         data = [
-            {'id': u.id, 'username': u.username, 'is_staff': u.is_staff, 'is_active': u.is_active}
+            {
+                'id': u.id,
+                'username': u.username,
+                'is_staff': u.is_staff,
+                'is_active': u.is_active,
+            }
             for u in users
         ]
         return Response(data)
@@ -144,7 +157,10 @@ def admin_users(request, pk=None):
         try:
             u = User.objects.get(pk=pk)
         except User.DoesNotExist:
-            return Response({'detail': 'not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'detail': 'not found'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         # Only admins can toggle staff and active status
         is_staff = request.data.get('is_staff')
         is_active = request.data.get('is_active')
@@ -157,6 +173,14 @@ def admin_users(request, pk=None):
             changed = True
         if changed:
             u.save()
-        return Response({'id': u.id, 'username': u.username, 'is_staff': u.is_staff, 'is_active': u.is_active})
+        return Response({
+            'id': u.id,
+            'username': u.username,
+            'is_staff': u.is_staff,
+            'is_active': u.is_active,
+        })
 
-    return Response({'detail': 'method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return Response(
+        {'detail': 'method not allowed'},
+        status=status.HTTP_405_METHOD_NOT_ALLOWED,
+    )
