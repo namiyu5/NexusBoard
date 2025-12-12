@@ -9,13 +9,20 @@ class Course(models.Model):
         ('intermediate', 'Intermediate'),
         ('advanced', 'Advanced'),
     ]
-    
+
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     excerpt = models.TextField(blank=True)
     published = models.BooleanField(default=False)
-    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='beginner')
-    duration_hours = models.PositiveIntegerField(default=1, help_text='Course duration in hours')
+    difficulty = models.CharField(
+        max_length=20,
+        choices=DIFFICULTY_CHOICES,
+        default='beginner'
+    )
+    duration_hours = models.PositiveIntegerField(
+        default=1,
+        help_text='Course duration in hours'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -29,7 +36,11 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
-    course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course,
+        related_name='lessons',
+        on_delete=models.CASCADE
+    )
     title = models.CharField(max_length=255)
     content = RichTextField(blank=True)
     order = models.PositiveIntegerField(default=0)
@@ -44,7 +55,11 @@ class Lesson(models.Model):
 
 
 class Note(models.Model):
-    lesson = models.ForeignKey(Lesson, related_name='notes', on_delete=models.CASCADE)
+    lesson = models.ForeignKey(
+        Lesson,
+        related_name='notes',
+        on_delete=models.CASCADE
+    )
     title = models.CharField(max_length=200, blank=True)
     content = RichTextField(blank=True)
     is_public = models.BooleanField(default=False)

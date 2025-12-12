@@ -32,7 +32,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     """Notes: editable by author or admin. Public notes visible to all."""
     queryset = Note.objects.select_related('lesson').all()
     serializer_class = NoteSerializer
-    
+
     class IsAuthorOrReadOnly(permissions.BasePermission):
         """Author or admin can edit. Authenticated users can read."""
         def has_permission(self, request, view):
@@ -55,7 +55,7 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter notes based on user permissions.
-        
+
         Admin sees all notes.
         Regular users see: public notes + their own notes.
         """
@@ -82,7 +82,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             'Anonymous'
         )
         serializer.save(author=username)
-    
+
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
     """Allow users to list and create their enrollments.
